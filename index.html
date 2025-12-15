@@ -3,133 +3,141 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <meta name="theme-color" content="#111827"/>
-  <link rel="manifest" href="manifest.webmanifest"/>
+  <meta name="theme-color" content="#0f172a"/>
+  <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml"/>
   <link rel="apple-touch-icon" href="icon.svg"/>
-  <title>Gym Tracker</title>
-  <link rel="stylesheet" href="styles.css"/>
+  <title>Workout Tracker Pro</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
-  <header class="topbar">
+  <header class="appHeader">
     <div class="brand">
-      <div class="logo" aria-hidden="true">🏋️</div>
-      <div>
-        <div class="title">Gym Tracker</div>
-        <div class="subtitle">Offline workout log (sets • reps • weight • time)</div>
+      <div class="brandIcon" aria-hidden="true">💪</div>
+      <div class="brandText">
+        <div class="brandTitle">Workout Tracker Pro</div>
+        <div class="brandSub">Track Every Rep, Build Every Day</div>
       </div>
     </div>
 
-    <div class="top-actions">
-      <button class="btn" id="btnInstall" hidden>Install</button>
+    <div class="headerActions">
+      <button class="btn ghost" id="btnInstall" hidden>Install</button>
       <button class="btn" id="btnExport">Export</button>
-      <label class="btn filebtn">
-        Import<input type="file" id="fileImport" accept="application/json"/>
+      <label class="btn ghost fileBtn">
+        Import
+        <input type="file" id="fileImport" accept="application/json" hidden>
       </label>
     </div>
   </header>
 
-  <main class="layout">
-    <aside class="sidebar">
-      <div class="sidebar-head">
-        <div class="section-title">Routines</div>
-        <button class="btn primary" id="btnAddRoutine">+ Routine</button>
+  <nav class="tabs">
+    <button class="tab active" data-tab="workout">Workout</button>
+    <button class="tab" data-tab="history">History</button>
+    <button class="tab" data-tab="stats">Stats</button>
+  </nav>
+
+  <main class="container">
+    <!-- WORKOUT -->
+    <section class="panel active" id="panel-workout">
+
+      <div class="timerCard" id="timerCard" hidden>
+        <div class="timerValue" id="timerValue">00:00:00</div>
+        <div class="timerLabel">Workout Duration</div>
       </div>
 
-      <div class="routines" id="routineList"></div>
+      <div class="programBar">
+        <div class="programLeft">
+          <div class="label">Program</div>
+          <select id="routineSelect" class="select"></select>
+        </div>
 
-      <div class="sidebar-footer">
-        <div class="hint">
-          Tip: Everything is saved locally on your phone (works offline).
+        <div class="programRight">
+          <div class="label">Date</div>
+          <input type="date" id="workoutDate" class="input">
         </div>
       </div>
-    </aside>
 
-    <section class="content">
-      <div class="content-head">
-        <div>
-          <div class="section-title" id="currentRoutineTitle">—</div>
-          <div class="tabs" id="dayTabs"></div>
-        </div>
+      <div id="dayList"></div>
 
-        <div class="content-controls">
-          <div class="field">
-            <label for="workoutDate">Date</label>
-            <input type="date" id="workoutDate"/>
+      <div id="activeWorkout" hidden>
+        <div class="activeHeader">
+          <div>
+            <div class="activeTitle" id="activeTitle">Day</div>
+            <div class="activeMeta" id="activeMeta">—</div>
           </div>
-          <div class="field">
-            <label for="searchBox">Search</label>
-            <input type="search" id="searchBox" placeholder="Find an exercise…"/>
+          <button class="btn danger" id="btnFinishWorkout">Finish Workout</button>
+        </div>
+
+        <div class="searchRow">
+          <input id="searchBox" class="input" type="search" placeholder="Find an exercise...">
+          <button class="btn" id="btnAddExercise">+ Add Exercise</button>
+        </div>
+
+        <div id="exerciseList"></div>
+      </div>
+    </section>
+
+    <!-- HISTORY -->
+    <section class="panel" id="panel-history">
+      <!-- List view -->
+      <div id="historyView">
+        <div class="sectionTitle">History</div>
+        <div id="historyList"></div>
+      </div>
+
+      <!-- Detail view -->
+      <div id="historyDetail" hidden>
+        <div class="historyTop">
+          <button class="btn ghost" id="btnBackHistory">← Back</button>
+          <div class="historyHeading">
+            <div class="historyHeadingTitle" id="historyDetailTitle">Workout</div>
+            <div class="historyHeadingSub" id="historyDetailSub">—</div>
           </div>
-          <button class="btn primary" id="btnAddExercise">+ Exercise</button>
+        </div>
+
+        <div class="dayCard">
+          <div class="recentMain" id="historyDetailDayName">—</div>
+          <div class="recentSub" id="historyDetailSummary">—</div>
+        </div>
+
+        <div class="sectionTitle">Exercises</div>
+        <div id="historyDetailExercises"></div>
+      </div>
+    </section>
+
+    <!-- STATS -->
+    <section class="panel" id="panel-stats">
+      <div class="sectionTitle">Stats</div>
+      <div class="statsGrid">
+        <div class="statCard">
+          <div class="statValue" id="statWorkouts">0</div>
+          <div class="statLabel">Total Workouts</div>
+        </div>
+        <div class="statCard">
+          <div class="statValue" id="statSets">0</div>
+          <div class="statLabel">Total Sets</div>
+        </div>
+        <div class="statCard">
+          <div class="statValue" id="statVolume">0</div>
+          <div class="statLabel">Volume (kg)</div>
+        </div>
+        <div class="statCard">
+          <div class="statValue" id="statHours">0</div>
+          <div class="statLabel">Hours Trained</div>
         </div>
       </div>
 
-      <div class="cards" id="exerciseCards"></div>
-
-      <footer class="footer">
-        <div id="statusText" class="status">Ready.</div>
-      </footer>
+      <div class="recentCard">
+        <div class="recentTitle">Recent Activity</div>
+        <div id="recentActivity"></div>
+      </div>
     </section>
   </main>
 
-  <template id="exerciseCardTpl">
-    <article class="card">
-      <div class="card-head">
-        <div class="card-title"></div>
-        <div class="card-actions">
-          <a class="link videoLink" target="_blank" rel="noreferrer">Video</a>
-          <button class="iconbtn danger btnDeleteExercise" title="Remove exercise">✕</button>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="field small">
-          <label>Sets</label>
-          <input type="number" class="inpSets" min="1" value="1"/>
-        </div>
-        <div class="field small">
-          <label>Reps</label>
-          <input type="number" class="inpReps" min="0" value="10"/>
-        </div>
-        <div class="field small">
-          <label>Weight</label>
-          <input type="number" class="inpWeight" min="0" step="0.5" value="0"/>
-        </div>
-        <div class="field small">
-          <label>Time (sec)</label>
-          <input type="number" class="inpTime" min="0" value="0" placeholder="Optional"/>
-        </div>
-        <button class="btn primary btnAddSet">Add</button>
-      </div>
-
-      <div class="log">
-        <div class="log-head">
-          <div class="log-title">Today’s entries</div>
-          <div class="log-meta"></div>
-        </div>
-        <div class="log-table-wrap">
-          <table class="log-table">
-            <thead>
-              <tr><th>#</th><th>Set</th><th>Reps</th><th>Weight</th><th>Time</th><th></th></tr>
-            </thead>
-            <tbody class="logBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </article>
-  </template>
-
-  <template id="logRowTpl">
-    <tr>
-      <td class="idx"></td>
-      <td class="setno"></td>
-      <td class="reps"></td>
-      <td class="weight"></td>
-      <td class="time"></td>
-      <td><button class="iconbtn danger btnDeleteRow" title="Delete entry">🗑️</button></td>
-    </tr>
-  </template>
+  <footer class="statusBar">
+    <div id="statusText">Ready.</div>
+  </footer>
 
   <script src="app.js"></script>
 </body>
