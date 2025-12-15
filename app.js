@@ -1,3 +1,4 @@
+
 const STORAGE_KEY = "gymtracker:v1";
 
 const seedData = {
@@ -82,6 +83,7 @@ const seedData = {
   ]
 };
 
+// ---------- helpers ----------
 function nowISODate(){
   const d = new Date();
   const off = d.getTimezoneOffset();
@@ -116,7 +118,7 @@ function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); 
 
 let state = loadState();
 
-// UI refs
+// ---------- UI refs ----------
 const els = {
   tabs: Array.from(document.querySelectorAll(".tab")),
   panels: {
@@ -124,6 +126,7 @@ const els = {
     history: document.getElementById("panel-history"),
     stats: document.getElementById("panel-stats")
   },
+
   routineSelect: document.getElementById("routineSelect"),
   dayList: document.getElementById("dayList"),
   activeWorkout: document.getElementById("activeWorkout"),
@@ -134,9 +137,11 @@ const els = {
   workoutDate: document.getElementById("workoutDate"),
   btnAddExercise: document.getElementById("btnAddExercise"),
   btnFinishWorkout: document.getElementById("btnFinishWorkout"),
+
   btnExport: document.getElementById("btnExport"),
   fileImport: document.getElementById("fileImport"),
   btnInstall: document.getElementById("btnInstall"),
+
   timerCard: document.getElementById("timerCard"),
   timerValue: document.getElementById("timerValue"),
 
@@ -157,27 +162,32 @@ const els = {
   recentActivity: document.getElementById("recentActivity")
 };
 
+// ---------- app state ----------
 let currentDate = nowISODate();
 if(els.workoutDate) els.workoutDate.value = currentDate;
 
 let currentRoutineId = state.routines[0]?.id || "";
+let expandedDayId = null;  // Day dropdown (▼) state
+
 let active = { isRunning:false, routineId:"", dayId:"", startedAt:0 };
 let filterText = "";
 
-// -------- Tabs ----------
+// ---------- Tabs ----------
 els.tabs.forEach(btn=>{
   btn.addEventListener("click", ()=>{
     els.tabs.forEach(x=>x.classList.remove("active"));
     btn.classList.add("active");
     const t = btn.dataset.tab;
-    Object.values(els.panels).forEach(p=>p.classList.remove("active"));
-    els.panels[t].classList.add("active");
+
+    Object.values(els.panels).forEach(p=>p?.classList.remove("active"));
+    els.panels[t]?.classList.add("active");
+
     if(t==="history"){ showHistoryList(); renderHistory(); }
     if(t==="stats") renderStats();
   });
 });
 
-// -------- Data helpers ----------
+// ---------- Data helpers ----------
 function getRoutine(rid){ return state.routines.find(r=>r.id===rid); }
 function getDay(r, did){ return r.days.find(d=>d.id===did); }
 
@@ -200,7 +210,7 @@ function totalSetsForSession(date, routineId, dayId){
   return logsForSession(date, routineId, dayId).length;
 }
 
-// -------- Timer ----------
+// ---------- Timer ----------
 let timerTick = null;
 function fmtTime(ms){
   const s = Math.floor(ms/1000);
@@ -210,6 +220,7 @@ function fmtTime(ms){
   return `${hh}:${mm}:${ss}`;
 }
 function startTimer(){
+  if(!els.timerCard || !els.timerValue) return;
   els.timerCard.hidden = false;
   if(timerTick) clearInterval(timerTick);
   timerTick = setInterval(()=>{ els.timerValue.textContent = fmtTime(Date.now() - active.startedAt); }, 250);
@@ -217,11 +228,13 @@ function startTimer(){
 function stopTimer(){
   if(timerTick) clearInterval(timerTick);
   timerTick = null;
-  els.timerCard.hidden = true;
+  if(els.timerCard) els.timerCard.hidden = true;
 }
 
-// -------- Routine selector ----------
+// ---------- Routine select ----------
 function renderRoutineSelect(){
+  if(!els.routineSelect) return;
+
   els.routineSelect.innerHTML = "";
   state.routines.forEach(r=>{
     const opt = document.createElement("option");
@@ -230,41 +243,32 @@ function renderRoutineSelect(){
     els.routineSelect.appendChild(opt);
   });
 
-  // fallback if currentRoutineId missing
   if(!currentRoutineId || !state.routines.some(r=>r.id===currentRoutineId)){
     currentRoutineId = state.routines[0]?.id || "";
   }
   els.routineSelect.value = currentRoutineId;
 
-  // CHANGE handler
   els.routineSelect.onchange = ()=>{
     currentRoutineId = els.routineSelect.value;
+    expandedDayId = null;
     renderDayCards();
   };
-
-  // ✅ FORCE open dropdown on Chrome Android
-  els.routineSelect.onclick = ()=>{
-    if (typeof els.routineSelect.showPicker === "function") {
-      els.routineSelect.showPicker();
-    }
-  };
-
-  // Optional: show count so we know dropdown has items
-  setStatus(`Routines: ${els.routineSelect.options.length}`);
 }
 
-// -------- Day cards ----------
+// ---------- Day cards (▼ dropdown) ----------
 function renderDayCards(){
   const r = getRoutine(currentRoutineId);
-  if(!r) return;
+  if(!r || !els.dayList) return;
 
   els.dayList.innerHTML = "";
+
   r.days.forEach(d=>{
     const card = document.createElement("div");
     card.className = "dayCard";
 
     const top = document.createElement("div");
     top.className = "dayTop";
+    top.style.cursor = "pointer";
 
     const left = document.createElement("div");
     const title = document.createElement("div");
@@ -273,8 +277,7 @@ function renderDayCards(){
 
     const meta = document.createElement("div");
     meta.className = "dayMeta";
-    const exCount = d.exercises?.length || 0;
-    meta.textContent = `${d.meta || "Workout"} • ${exCount} exercises`;
+    meta.textContent = `${d.meta || "Workout"} • ${(d.exercises?.length||0)} exercises`;
 
     left.appendChild(title);
     left.appendChild(meta);
@@ -283,21 +286,67 @@ function renderDayCards(){
     arrow.className = "dayArrow";
     arrow.textContent = "▼";
 
+    const isExpanded = expandedDayId === d.id;
+    if(isExpanded) arrow.classList.add("rot");
+
     top.appendChild(left);
     top.appendChild(arrow);
 
-    const btn = document.createElement("button");
-    btn.className = "startBtn";
-    btn.innerHTML = "▶ Start Workout";
-    btn.addEventListener("click", ()=> beginWorkout(currentRoutineId, d.id));
+    top.addEventListener("click", ()=>{
+      expandedDayId = (expandedDayId === d.id) ? null : d.id;
+      renderDayCards();
+    });
 
     card.appendChild(top);
-    card.appendChild(btn);
+
+    if(isExpanded){
+      const details = document.createElement("div");
+      details.className = "dayDetails";
+
+      const list = document.createElement("div");
+      list.className = "dayExerciseList";
+
+      (d.exercises || []).forEach(ex=>{
+        const row = document.createElement("div");
+        row.className = "dayExerciseRow";
+
+        const nm = document.createElement("div");
+        nm.className = "dayExerciseName";
+        nm.textContent = ex.name;
+
+        const tut = document.createElement("button");
+        tut.className = "miniBtn";
+        tut.textContent = "Tutorial";
+        tut.addEventListener("click", (e)=>{
+          e.stopPropagation();
+          const url = (ex.videoUrl && ex.videoUrl.trim()) ? ex.videoUrl.trim() : ytSearchUrl(ex.name);
+          window.open(url, "_blank", "noreferrer");
+        });
+
+        row.appendChild(nm);
+        row.appendChild(tut);
+        list.appendChild(row);
+      });
+
+      details.appendChild(list);
+
+      const btn = document.createElement("button");
+      btn.className = "startBtn";
+      btn.innerHTML = "▶ Start Workout";
+      btn.addEventListener("click", (e)=>{
+        e.stopPropagation();
+        beginWorkout(currentRoutineId, d.id);
+      });
+
+      details.appendChild(btn);
+      card.appendChild(details);
+    }
+
     els.dayList.appendChild(card);
   });
 }
 
-// -------- Begin/Finish workout ----------
+// ---------- Begin/Finish workout ----------
 function beginWorkout(routineId, dayId){
   active.isRunning = true;
   active.routineId = routineId;
@@ -314,7 +363,7 @@ function beginWorkout(routineId, dayId){
   });
   saveState();
 
-  els.activeWorkout.hidden = false;
+  if(els.activeWorkout) els.activeWorkout.hidden = false;
   renderActiveWorkout();
   startTimer();
   setStatus("Workout started.");
@@ -334,26 +383,29 @@ function finishWorkout(){
   saveState();
 
   stopTimer();
-  els.activeWorkout.hidden = true;
+  if(els.activeWorkout) els.activeWorkout.hidden = true;
 
   setStatus("Workout finished.");
   renderHistory();
   renderStats();
 }
-els.btnFinishWorkout.addEventListener("click", finishWorkout);
 
-// -------- Active workout render ----------
+if(els.btnFinishWorkout) els.btnFinishWorkout.addEventListener("click", finishWorkout);
+
+// ---------- Active workout render ----------
 function renderActiveWorkout(){
   const r = getRoutine(active.routineId);
   const d = r ? getDay(r, active.dayId) : null;
   if(!d) return;
 
-  els.activeTitle.textContent = d.name;
-  els.activeMeta.textContent = `${d.meta || "Workout"} • ${(d.exercises?.length||0)} exercises`;
+  if(els.activeTitle) els.activeTitle.textContent = d.name;
+  if(els.activeMeta) els.activeMeta.textContent = `${d.meta || "Workout"} • ${(d.exercises?.length||0)} exercises`;
   renderExercises(d);
 }
 
 function renderExercises(day){
+  if(!els.exerciseList) return;
+
   const q = (filterText||"").toLowerCase();
   const exs = (day.exercises||[]).filter(ex=> ex.name.toLowerCase().includes(q));
 
@@ -454,6 +506,7 @@ function renderExercises(day){
         saveState();
         setStatus("Saved.");
       });
+
       reps.addEventListener("change", ()=>{
         const L = ensureLog();
         L.reps = Math.max(0, Math.floor(safeNum(reps.value)));
@@ -511,45 +564,46 @@ function renderExercises(day){
 }
 
 // Search
-els.searchBox.addEventListener("input", ()=>{
-  filterText = els.searchBox.value || "";
-  if(active.isRunning) renderActiveWorkout();
-});
+if(els.searchBox){
+  els.searchBox.addEventListener("input", ()=>{
+    filterText = els.searchBox.value || "";
+    if(active.isRunning) renderActiveWorkout();
+  });
+}
 
-els.workoutDate.onclick = ()=>{
-  if (typeof els.workoutDate.showPicker === "function") {
-    els.workoutDate.showPicker();
-  }
-};
 // Date change
-els.workoutDate.addEventListener("change", ()=>{
-  currentDate = els.workoutDate.value || nowISODate();
-  setStatus("Date changed.");
-  if(active.isRunning) renderActiveWorkout();
-  renderHistory();
-  renderStats();
-});
+if(els.workoutDate){
+  els.workoutDate.addEventListener("change", ()=>{
+    currentDate = els.workoutDate.value || nowISODate();
+    setStatus("Date changed.");
+    if(active.isRunning) renderActiveWorkout();
+    renderHistory();
+    renderStats();
+  });
+}
 
 // Add exercise
-els.btnAddExercise.addEventListener("click", ()=>{
-  if(!active.isRunning){ alert("Start a workout first."); return; }
-  const r = getRoutine(active.routineId);
-  const d = r ? getDay(r, active.dayId) : null;
-  if(!d) return;
+if(els.btnAddExercise){
+  els.btnAddExercise.addEventListener("click", ()=>{
+    if(!active.isRunning){ alert("Start a workout first."); return; }
+    const r = getRoutine(active.routineId);
+    const d = r ? getDay(r, active.dayId) : null;
+    if(!d) return;
 
-  const name = prompt("Exercise name:");
-  if(!name) return;
+    const name = prompt("Exercise name:");
+    if(!name) return;
 
-  const videoUrl = prompt("Video link (optional). Leave empty for YouTube search:") || "";
-  d.exercises.unshift({ id: uid("ex"), name: name.trim(), videoUrl: videoUrl.trim() });
-  saveState();
+    const videoUrl = prompt("Video link (optional). Leave empty for YouTube search:") || "";
+    d.exercises.unshift({ id: uid("ex"), name: name.trim(), videoUrl: videoUrl.trim() });
+    saveState();
 
-  renderActiveWorkout();
-  renderDayCards();
-  setStatus("Exercise added.");
-});
+    renderActiveWorkout();
+    renderDayCards();
+    setStatus("Exercise added.");
+  });
+}
 
-// -------- CSV Export ----------
+// ---------- CSV Export ----------
 function csvEscape(value){
   const s = String(value ?? "");
   if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g,'""')}"`;
@@ -593,9 +647,9 @@ function exportCSV(){
   a.remove();
   setStatus("Exported CSV.");
 }
-els.btnExport.addEventListener("click", exportCSV);
+if(els.btnExport) els.btnExport.addEventListener("click", exportCSV);
 
-// -------- Import JSON ----------
+// ---------- Import JSON ----------
 function importData(file){
   const reader = new FileReader();
   reader.onload = ()=>{
@@ -609,9 +663,10 @@ function importData(file){
       saveState();
 
       currentRoutineId = state.routines[0]?.id || "";
+      expandedDayId = null;
       active.isRunning = false;
       stopTimer();
-      els.activeWorkout.hidden = true;
+      if(els.activeWorkout) els.activeWorkout.hidden = true;
 
       renderRoutineSelect();
       renderDayCards();
@@ -625,13 +680,15 @@ function importData(file){
   };
   reader.readAsText(file);
 }
-els.fileImport.addEventListener("change", (e)=>{
-  const f = e.target.files?.[0];
-  if(f) importData(f);
-  e.target.value = "";
-});
+if(els.fileImport){
+  els.fileImport.addEventListener("change", (e)=>{
+    const f = e.target.files?.[0];
+    if(f) importData(f);
+    e.target.value = "";
+  });
+}
 
-// -------- History (List + Detail drill-down) ----------
+// ---------- History (List + Detail drill-down) ----------
 function synthSessionsFromLogs(){
   const map = new Map();
   state.logs.forEach(l=>{
@@ -656,15 +713,16 @@ function synthSessionsFromLogs(){
 function getAllSessions(){
   return (state.sessions && state.sessions.length) ? state.sessions.slice() : synthSessionsFromLogs();
 }
+
 function showHistoryList(){
-  els.historyDetail.hidden = true;
-  els.historyView.hidden = false;
+  if(els.historyDetail) els.historyDetail.hidden = true;
+  if(els.historyView) els.historyView.hidden = false;
 }
 function showHistoryDetail(){
-  els.historyView.hidden = true;
-  els.historyDetail.hidden = false;
+  if(els.historyView) els.historyView.hidden = true;
+  if(els.historyDetail) els.historyDetail.hidden = false;
 }
-els.btnBackHistory.addEventListener("click", showHistoryList);
+if(els.btnBackHistory) els.btnBackHistory.addEventListener("click", showHistoryList);
 
 function renderHistory(){
   if(!els.historyList) return;
@@ -729,10 +787,12 @@ function renderHistoryDetail(s){
   const vol = Math.round(totalVolumeForSession(s.date, s.routineId, s.dayId));
   const dur = (s.endedAt && s.startedAt && s.endedAt>s.startedAt) ? fmtTime(s.endedAt - s.startedAt) : "—";
 
-  els.historyDetailTitle.textContent = dateNice;
-  els.historyDetailSub.textContent = r?.name || "Program";
-  els.historyDetailDayName.textContent = dayName;
-  els.historyDetailSummary.textContent = `⏱ ${dur} • 🏋️ ${sets} sets • 📦 ${vol} kg`;
+  if(els.historyDetailTitle) els.historyDetailTitle.textContent = dateNice;
+  if(els.historyDetailSub) els.historyDetailSub.textContent = r?.name || "Program";
+  if(els.historyDetailDayName) els.historyDetailDayName.textContent = dayName;
+  if(els.historyDetailSummary) els.historyDetailSummary.textContent = `⏱ ${dur} • 🏋️ ${sets} sets • 📦 ${vol} kg`;
+
+  if(!els.historyDetailExercises) return;
 
   const logs = logsForSession(s.date, s.routineId, s.dayId);
   const byExercise = new Map();
@@ -774,7 +834,6 @@ function renderHistoryDetail(s){
 
     left.appendChild(name);
     left.appendChild(meta);
-
     top.appendChild(left);
     card.appendChild(top);
 
@@ -828,6 +887,8 @@ function renderHistoryDetail(s){
         saveState();
         renderHistoryDetail(s);
         setStatus("Deleted set.");
+        renderStats();
+        renderHistory();
       });
 
       row.appendChild(num);
@@ -841,8 +902,10 @@ function renderHistoryDetail(s){
   });
 }
 
-// -------- Stats ----------
+// ---------- Stats ----------
 function renderStats(){
+  if(!els.statWorkouts) return;
+
   const sessions = getAllSessions();
   const totalWorkouts = sessions.length;
   const totalSets = state.logs.length;
@@ -856,11 +919,13 @@ function renderStats(){
   const hoursTxt = (Math.round(hours*10)/10).toString();
 
   els.statWorkouts.textContent = String(totalWorkouts);
-  els.statSets.textContent = String(totalSets);
-  els.statVolume.textContent = String(totalVol);
-  els.statHours.textContent = hoursTxt;
+  if(els.statSets) els.statSets.textContent = String(totalSets);
+  if(els.statVolume) els.statVolume.textContent = String(totalVol);
+  if(els.statHours) els.statHours.textContent = hoursTxt;
 
+  if(!els.recentActivity) return;
   els.recentActivity.innerHTML = "";
+
   const latest = sessions.slice().sort((a,b)=> (b.startedAt||0)-(a.startedAt||0)).slice(0,5);
 
   if(latest.length===0){
@@ -875,21 +940,25 @@ function renderStats(){
     const r = getRoutine(s.routineId);
     const d = r?.days?.find(x=>x.id===s.dayId);
     const sets = totalSetsForSession(s.date, s.routineId, s.dayId);
+
     const item = document.createElement("div");
     item.className = "recentItem";
+
     const a = document.createElement("div");
     a.className = "recentMain";
     a.textContent = d?.name || "Workout";
+
     const b = document.createElement("div");
     b.className = "recentSub";
     b.textContent = `${s.date} • ${sets} sets`;
+
     item.appendChild(a);
     item.appendChild(b);
     els.recentActivity.appendChild(item);
   });
 }
 
-// -------- Install prompt ----------
+// ---------- Install prompt ----------
 let deferredPrompt=null;
 window.addEventListener("beforeinstallprompt",(e)=>{
   e.preventDefault();
@@ -906,7 +975,7 @@ if(els.btnInstall){
   });
 }
 
-// -------- Service worker ----------
+// ---------- Service worker register ----------
 if("serviceWorker" in navigator){
   window.addEventListener("load", async ()=>{
     try{
@@ -918,7 +987,7 @@ if("serviceWorker" in navigator){
   });
 }
 
-// Initial render
+// ---------- init ----------
 renderRoutineSelect();
 renderDayCards();
 showHistoryList();
