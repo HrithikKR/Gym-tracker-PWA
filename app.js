@@ -1,8 +1,7 @@
-/* Gym Tracker PWA (Full app.js)
-   - Offline-first app shell (service worker)
-   - Local storage for routines + logs
-   - Default routines from your PDF (pages 2–4)
-   - Export to Excel (.xls) SpreadsheetML (works offline, no libraries)
+/* Gym Tracker PWA (app.js - CSV export version)
+   - Restores default routines if localStorage routines are empty/corrupt
+   - Logs: sets, reps, weight, time
+   - Export: CSV (safe, opens everywhere)
 */
 
 const STORAGE_KEY = "gymtracker:v1";
@@ -134,35 +133,48 @@ function ytSearchUrl(exName) {
   const q = encodeURIComponent(exName + " proper form tutorial");
   return "https://www.youtube.com/results?search_query=" + q;
 }
+function setStatus(msg) {
+  const el = document.getElementById("statusText");
+  if (el) el.textContent = msg;
+}
+
+setStatus("App loaded.");
 
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      return { routines: seedData.routines, logs: [] };
-    }
+    if (!raw) return { routines: seedData.routines, logs: [] };
+
     const st = JSON.parse(raw);
-    if (!st?.routines || !st?.logs) throw new Error("bad state");
+    if (!st || typeof st !== "object") throw new Error("bad");
+
+    if (!Array.isArray(st.logs)) st.logs = [];
+    if (!Array.isArray(st.routines)) st.routines = [];
+
+    if (st.routines.length === 0) st.routines = seedData.routines;
+
     return st;
-  } catch (e) {
+  } catch {
     return { routines: seedData.routines, logs: [] };
   }
 }
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
-function setStatus(msg) {
-  const el = document.getElementById("statusText");
-  if (el) el.textContent = msg;
-}
 
 let state = loadState();
+if (!Array.isArray(state.routines) || state.routines.length === 0) {
+  state.routines = seedData.routines;
+  if (!Array.isArray(state.logs)) state.logs = [];
+  saveState();
+}
+
 let currentRoutineId = state.routines[0]?.id || "";
 let currentDayId = state.routines[0]?.days?.[0]?.id || "";
 let currentDate = nowISODate();
 let filterText = "";
 
-// ===== DOM references =====
+// DOM
 const els = {
   routineList: document.getElementById("routineList"),
   dayTabs: document.getElementById("dayTabs"),
@@ -179,7 +191,6 @@ const els = {
 
 if (els.date) els.date.value = currentDate;
 
-// ===== Helpers to access data =====
 function getRoutine(rid) {
   return state.routines.find((r) => r.id === rid);
 }
@@ -208,7 +219,6 @@ function deleteLogEntry(entryId) {
   saveState();
 }
 
-// ===== Render routines list =====
 function renderRoutines() {
   if (!els.routineList) return;
   els.routineList.innerHTML = "";
@@ -234,16 +244,12 @@ function renderRoutines() {
       e.stopPropagation();
       if (confirm(`Delete routine "${r.name}"? This will NOT delete your past logs.`)) {
         state.routines = state.routines.filter((x) => x.id !== r.id);
-        if (state.routines.length === 0) {
-          state.routines = [
-            { id: uid("routine"), name: "My Routine", days: [{ id: uid("day"), name: "Day 1", exercises: [] }] }
-          ];
-        }
+        if (state.routines.length === 0) state.routines = seedData.routines;
         currentRoutineId = state.routines[0].id;
         currentDayId = state.routines[0].days[0].id;
         saveState();
         renderAll();
-        setStatus("Routine deleted.");
+        setStatus("Routine deleted (defaults restored if empty).");
       }
     });
     meta.appendChild(delBtn);
@@ -261,7 +267,6 @@ function renderRoutines() {
   });
 }
 
-// ===== Render day tabs =====
 function renderDays() {
   const r = getRoutine(currentRoutineId);
   if (!r || !els.dayTabs || !els.routineTitle) return;
@@ -295,7 +300,6 @@ function renderDays() {
   els.dayTabs.appendChild(add);
 }
 
-// ===== Render exercise cards =====
 function renderExercises() {
   const r = getRoutine(currentRoutineId);
   if (!r || !els.cards) return;
@@ -318,8 +322,7 @@ function renderExercises() {
     node.querySelector(".card-title").textContent = ex.name;
 
     const videoLink = node.querySelector(".videoLink");
-    const url = ex.videoUrl && ex.videoUrl.trim() ? ex.videoUrl.trim() : ytSearchUrl(ex.name);
-    videoLink.href = url;
+    videoLink.href = ex.videoUrl && ex.videoUrl.trim() ? ex.videoUrl.trim() : ytSearchUrl(ex.name);
 
     node.querySelector(".btnDeleteExercise").addEventListener("click", () => {
       if (confirm(`Remove "${ex.name}" from ${r.name} / ${d.name}?`)) {
@@ -396,14 +399,17 @@ function renderExercises() {
   }
 }
 
-// ===== Main render =====
 function renderAll() {
-  renderRoutines();
-  renderDays();
-  renderExercises();
+  try {
+    renderRoutines();
+    renderDays();
+    renderExercises();
+  } catch (e) {
+    console.error(e);
+    setStatus("Error: " + (e?.message || "unknown"));
+  }
 }
 
-// ===== Add routine/exercise =====
 function addRoutine() {
   const name = prompt("Routine name (e.g., Upper Body):");
   if (!name) return;
@@ -412,9 +418,8 @@ function addRoutine() {
   const n = Math.max(1, Math.min(14, Math.floor(safeNum(daysStr || "1"))));
 
   const routine = { id: uid("routine"), name: name.trim(), days: [] };
-  for (let i = 1; i <= n; i++) {
-    routine.days.push({ id: uid("day"), name: `Day ${i}`, exercises: [] });
-  }
+  for (let i = 1; i <= n; i++) routine.days.push({ id: uid("day"), name: `Day ${i}`, exercises: [] });
+
   state.routines.unshift(routine);
   currentRoutineId = routine.id;
   currentDayId = routine.days[0].id;
@@ -433,19 +438,13 @@ function addExercise() {
   if (!name) return;
 
   const videoUrl = prompt("Video link (optional). Leave empty to use a YouTube search link:") || "";
-
-  d.exercises.unshift({
-    id: uid("ex"),
-    name: name.trim(),
-    videoUrl: videoUrl.trim()
-  });
+  d.exercises.unshift({ id: uid("ex"), name: name.trim(), videoUrl: videoUrl.trim() });
 
   saveState();
   renderExercises();
   setStatus("Exercise added.");
 }
 
-// ===== Import (JSON backup) =====
 function importData(file) {
   const reader = new FileReader();
   reader.onload = () => {
@@ -453,140 +452,93 @@ function importData(file) {
       const obj = JSON.parse(String(reader.result));
       if (!obj?.routines || !obj?.logs) throw new Error("Invalid file");
       state = obj;
+
+      if (!Array.isArray(state.routines) || state.routines.length === 0) state.routines = seedData.routines;
+      if (!Array.isArray(state.logs)) state.logs = [];
+
       currentRoutineId = state.routines[0]?.id || "";
       currentDayId = state.routines[0]?.days?.[0]?.id || "";
       saveState();
       renderAll();
       setStatus("Imported data.");
-    } catch (e) {
+    } catch {
       alert("Could not import. Please choose a valid backup JSON file.");
     }
   };
   reader.readAsText(file);
 }
 
-// ===== Export (Excel .xls) =====
-function xmlEscape(s) {
-  return String(s ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&apos;");
+// ===== CSV Export =====
+function csvEscape(value) {
+  const s = String(value ?? "");
+  // Escape quotes by doubling them; wrap in quotes if it contains comma/newline/quote
+  if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
 }
 
-function sheetXML(name, rows) {
-  const rowXml = rows
-    .map(
-      (r) =>
-        "<Row>" +
-        r
-          .map((c) => `<Cell><Data ss:Type="String">${xmlEscape(c)}</Data></Cell>`)
-          .join("") +
-        "</Row>"
-    )
-    .join("");
+function exportCSV() {
+  const header = [
+    "Date",
+    "Routine",
+    "Day",
+    "Exercise",
+    "SetNo",
+    "Reps",
+    "Weight",
+    "TimeSec",
+    "Volume",
+    "CreatedAtISO"
+  ];
 
-  return `
-  <Worksheet ss:Name="${xmlEscape(name)}">
-    <Table>
-      ${rowXml}
-    </Table>
-  </Worksheet>`;
-}
-
-function exportExcel() {
-  // Sheet 1: Logs
-  const logsHeader = ["Date","Routine","Day","Exercise","SetNo","Reps","Weight","TimeSec","Volume","CreatedAt"];
-  const logsRows = state.logs
+  const rows = state.logs
     .slice()
-    .sort((a,b) => (a.date||"").localeCompare(b.date||"") || (a.createdAt||0)-(b.createdAt||0))
-    .map(l => {
-      const r = state.routines.find(x=>x.id===l.routineId);
-      const d = r?.days?.find(x=>x.id===l.dayId);
-      const ex = d?.exercises?.find(x=>x.id===l.exerciseId);
-      const reps = Number(l.reps||0);
-      const wt = Number(l.weight||0);
+    .sort((a, b) => (a.date || "").localeCompare(b.date || "") || (a.createdAt || 0) - (b.createdAt || 0))
+    .map((l) => {
+      const r = state.routines.find((x) => x.id === l.routineId);
+      const d = r?.days?.find((x) => x.id === l.dayId);
+      const ex = d?.exercises?.find((x) => x.id === l.exerciseId);
+
+      const reps = Number(l.reps || 0);
+      const wt = Number(l.weight || 0);
       const vol = reps * wt;
+
       return [
         l.date || "",
         r?.name || "",
         d?.name || "",
         ex?.name || l.exerciseId || "",
-        String(l.setNo ?? ""),
-        String(l.reps ?? ""),
-        String(l.weight ?? ""),
-        String(l.seconds ?? ""),
-        String(vol || ""),
+        l.setNo ?? "",
+        l.reps ?? "",
+        l.weight ?? "",
+        l.seconds ?? "",
+        vol || "",
         l.createdAt ? new Date(l.createdAt).toISOString() : ""
       ];
     });
 
-  // Sheet 2: Routine list
-  const exHeader = ["Routine","Day","Exercise","VideoURL"];
-  const exRows = [];
-  state.routines.forEach(r=>{
-    r.days.forEach(d=>{
-      (d.exercises||[]).forEach(ex=>{
-        exRows.push([r.name, d.name, ex.name, ex.videoUrl || ""]);
-      });
-    });
-  });
+  const csv =
+    header.map(csvEscape).join(",") +
+    "\r\n" +
+    rows.map((r) => r.map(csvEscape).join(",")).join("\r\n") +
+    "\r\n";
 
-  // Sheet 3: Daily summary
-  const summaryHeader = ["Date","Exercise","TotalSets","TotalReps","TotalVolume"];
-  const keyMap = new Map();
-  state.logs.forEach(l=>{
-    const r = state.routines.find(x=>x.id===l.routineId);
-    const d = r?.days?.find(x=>x.id===l.dayId);
-    const ex = d?.exercises?.find(x=>x.id===l.exerciseId);
-    const exName = ex?.name || l.exerciseId || "";
-    const key = (l.date||"") + "||" + exName;
-
-    const reps = Number(l.reps||0);
-    const wt = Number(l.weight||0);
-    const vol = reps * wt;
-
-    const cur = keyMap.get(key) || {date:l.date||"", ex:exName, sets:0, reps:0, vol:0};
-    cur.sets += 1;
-    cur.reps += reps;
-    cur.vol += vol;
-    keyMap.set(key, cur);
-  });
-
-  const summaryRows = Array.from(keyMap.values())
-    .sort((a,b)=> a.date.localeCompare(b.date) || a.ex.localeCompare(b.ex))
-    .map(x=> [x.date, x.ex, String(x.sets), String(x.reps), String(Math.round(x.vol))]);
-
-  const xml = `<?xml version="1.0"?>
-<?mso-application progid="Excel.Sheet"?>
-<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
- xmlns:o="urn:schemas-microsoft-com:office:office"
- xmlns:x="urn:schemas-microsoft-com:office:excel"
- xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
- xmlns:html="http://www.w3.org/TR/REC-html40">
- ${sheetXML("Logs", [logsHeader, ...logsRows])}
- ${sheetXML("Routines", [exHeader, ...exRows])}
- ${sheetXML("DailySummary", [summaryHeader, ...summaryRows])}
-</Workbook>`;
-
-  const blob = new Blob([xml], { type: "application/vnd.ms-excel;charset=utf-8" });
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = `gymtracker-export-${new Date().toISOString().slice(0,10)}.xls`;
+  a.download = `gymtracker-export-${new Date().toISOString().slice(0, 10)}.csv`;
   document.body.appendChild(a);
   a.click();
   a.remove();
 
-  setStatus("Exported Excel (.xls) file.");
+  setStatus("Exported CSV file.");
 }
 
-// ===== Wire up UI events =====
+// Wire events
 if (els.btnAddRoutine) els.btnAddRoutine.addEventListener("click", addRoutine);
 if (els.btnAddExercise) els.btnAddExercise.addEventListener("click", addExercise);
 
-// Export -> Excel
-if (els.btnExport) els.btnExport.addEventListener("click", exportExcel);
+// Export -> CSV
+if (els.btnExport) els.btnExport.addEventListener("click", exportCSV);
 
 if (els.fileImport) {
   els.fileImport.addEventListener("change", (e) => {
@@ -611,14 +563,13 @@ if (els.search) {
   });
 }
 
-// PWA install prompt (Chrome/Android)
+// Install prompt
 let deferredPrompt = null;
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
   if (els.btnInstall) els.btnInstall.hidden = false;
 });
-
 if (els.btnInstall) {
   els.btnInstall.addEventListener("click", async () => {
     if (!deferredPrompt) return;
@@ -635,8 +586,8 @@ if ("serviceWorker" in navigator) {
     try {
       await navigator.serviceWorker.register("./sw.js");
       setStatus("Offline ready.");
-    } catch (e) {
-      setStatus("Service worker failed to register (offline may not work).");
+    } catch {
+      setStatus("Service worker failed to register.");
     }
   });
 }
