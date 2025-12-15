@@ -1,0 +1,123 @@
+<p dir="ltr">&lt;!doctype html&gt;<br>
+&lt;html lang="en"&gt;<br>
+&lt;head&gt;<br>
+&nbsp; &lt;meta charset="utf-8"/&gt;<br>
+&nbsp; &lt;meta name="viewport" content="width=device-width, initial-scale=1"/&gt;<br>
+&nbsp; &lt;meta name="theme-color" content="#111827"/&gt;<br>
+&nbsp; &lt;link rel="manifest" href="manifest.webmanifest"/&gt;<br>
+&nbsp; &lt;link rel="icon" href="icon.svg" type="image/svg+xml"/&gt;<br>
+&nbsp; &lt;link rel="apple-touch-icon" href="icon.svg"/&gt;<br>
+&nbsp; &lt;title&gt;Gym Tracker&lt;/title&gt;<br>
+&nbsp; &lt;link rel="stylesheet" href="styles.css"/&gt;<br>
+&lt;/head&gt;<br>
+&lt;body&gt;<br>
+&nbsp; &lt;header class="topbar"&gt;<br>
+&nbsp;&nbsp;&nbsp; &lt;div class="brand"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div class="logo" aria-hidden="true"&gt;&#127947;&#65039;&lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div class="title"&gt;Gym Tracker&lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div class="subtitle"&gt;Offline workout log (sets &#8226; reps &#8226; weight &#8226; time)&lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp; &lt;/div&gt;</p>
+<p dir="ltr">&nbsp;&nbsp;&nbsp; &lt;div class="top-actions"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;button class="btn" id="btnInstall" hidden&gt;Install&lt;/button&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;button class="btn" id="btnExport"&gt;Export&lt;/button&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;label class="btn filebtn"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Import&lt;input type="file" id="fileImport" accept="application/json"/&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/label&gt;<br>
+&nbsp;&nbsp;&nbsp; &lt;/div&gt;<br>
+&nbsp; &lt;/header&gt;</p>
+<p dir="ltr">&nbsp; &lt;main class="layout"&gt;<br>
+&nbsp;&nbsp;&nbsp; &lt;aside class="sidebar"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div class="sidebar-head"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div class="section-title"&gt;Routines&lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;button class="btn primary" id="btnAddRoutine"&gt;+ Routine&lt;/button&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/div&gt;</p>
+<p dir="ltr">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div class="routines" id="routineList"&gt;&lt;/div&gt;</p>
+<p dir="ltr">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div class="sidebar-footer"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div class="hint"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Tip: Everything is saved locally on your phone (works offline).<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp; &lt;/aside&gt;</p>
+<p dir="ltr">&nbsp;&nbsp;&nbsp; &lt;section class="content"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div class="content-head"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div class="section-title" id="currentRoutineTitle"&gt;&#8212;&lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div class="tabs" id="dayTabs"&gt;&lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/div&gt;</p>
+<p dir="ltr">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div class="content-controls"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div class="field"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;label for="workoutDate"&gt;Date&lt;/label&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;input type="date" id="workoutDate"/&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div class="field"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;label for="searchBox"&gt;Search&lt;/label&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;input type="search" id="searchBox" placeholder="Find an exercise&#8230;"/&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;button class="btn primary" id="btnAddExercise"&gt;+ Exercise&lt;/button&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/div&gt;</p>
+<p dir="ltr">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div class="cards" id="exerciseCards"&gt;&lt;/div&gt;</p>
+<p dir="ltr">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;footer class="footer"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div id="statusText" class="status"&gt;Ready.&lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/footer&gt;<br>
+&nbsp;&nbsp;&nbsp; &lt;/section&gt;<br>
+&nbsp; &lt;/main&gt;</p>
+<p dir="ltr">&nbsp; &lt;template id="exerciseCardTpl"&gt;<br>
+&nbsp;&nbsp;&nbsp; &lt;article class="card"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div class="card-head"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div class="card-title"&gt;&lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div class="card-actions"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;a class="link videoLink" target="_blank" rel="noreferrer"&gt;Video&lt;/a&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;button class="iconbtn danger btnDeleteExercise" title="Remove exercise"&gt;&#10005;&lt;/button&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/div&gt;</p>
+<p dir="ltr">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div class="row"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div class="field small"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;label&gt;Sets&lt;/label&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;input type="number" class="inpSets" min="1" value="1"/&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div class="field small"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;label&gt;Reps&lt;/label&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;input type="number" class="inpReps" min="0" value="10"/&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div class="field small"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;label&gt;Weight&lt;/label&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;input type="number" class="inpWeight" min="0" step="0.5" value="0"/&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div class="field small"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;label&gt;Time (sec)&lt;/label&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;input type="number" class="inpTime" min="0" value="0" placeholder="Optional"/&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;button class="btn primary btnAddSet"&gt;Add&lt;/button&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/div&gt;</p>
+<p dir="ltr">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div class="log"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div class="log-head"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div class="log-title"&gt;Today&#8217;s entries&lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div class="log-meta"&gt;&lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;div class="log-table-wrap"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;table class="log-table"&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;thead&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;tr&gt;&lt;th&gt;#&lt;/th&gt;&lt;th&gt;Set&lt;/th&gt;&lt;th&gt;Reps&lt;/th&gt;&lt;th&gt;Weight&lt;/th&gt;&lt;th&gt;Time&lt;/th&gt;&lt;th&gt;&lt;/th&gt;&lt;/tr&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/thead&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;tbody class="logBody"&gt;&lt;/tbody&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/table&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;/div&gt;<br>
+&nbsp;&nbsp;&nbsp; &lt;/article&gt;<br>
+&nbsp; &lt;/template&gt;</p>
+<p dir="ltr">&nbsp; &lt;template id="logRowTpl"&gt;<br>
+&nbsp;&nbsp;&nbsp; &lt;tr&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;td class="idx"&gt;&lt;/td&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;td class="setno"&gt;&lt;/td&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;td class="reps"&gt;&lt;/td&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;td class="weight"&gt;&lt;/td&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;td class="time"&gt;&lt;/td&gt;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; &lt;td&gt;&lt;button class="iconbtn danger btnDeleteRow" title="Delete entry"&gt;&#128465;&#65039;&lt;/button&gt;&lt;/td&gt;<br>
+&nbsp;&nbsp;&nbsp; &lt;/tr&gt;<br>
+&nbsp; &lt;/template&gt;</p>
+<p dir="ltr">&nbsp; &lt;script src="app.js"&gt;&lt;/script&gt;<br>
+&lt;/body&gt;<br>
+&lt;/html&gt;</p>
