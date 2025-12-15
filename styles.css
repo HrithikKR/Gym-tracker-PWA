@@ -234,3 +234,38 @@ body{
   font-size:12px;
 }
 .status{ padding:10px 12px; border:1px dashed var(--border); border-radius:14px; }
+/* ---- History detail screen ---- */
+.historyTop{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  margin: 10px 2px 12px;
+}
+.historyHeading{flex:1}
+.historyHeadingTitle{font-size:18px; font-weight:900}
+.historyHeadingSub{color: var(--muted); font-weight:800; margin-top:2px}
+
+.histExerciseCard{
+  background: var(--card2);
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: var(--radius);
+  padding: 14px;
+  box-shadow: var(--shadow);
+  margin-bottom: 14px;
+}
+.histExerciseTop{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:10px;
+}
+.histExerciseName{font-size:18px; font-weight:900}
+.histExerciseMeta{color: var(--muted); font-weight:800; margin-top:6px}
+
+.row2{
+  display:grid;
+  grid-template-columns: 28px 1fr 1fr 34px;
+  gap: 10px;
+  align-items:center;
+  margin-top: 10px;
+}
