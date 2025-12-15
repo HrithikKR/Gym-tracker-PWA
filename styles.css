@@ -492,3 +492,5 @@ input[type="date"].input{
   .programBar{ flex-direction:column; }
   .statsGrid{ grid-template-columns: 1fr; }
            }
+.programBar, .programLeft, .programRight { position: relative; z-index: 10; }
+.select { position: relative; z-index: 11; pointer-events: auto; }
