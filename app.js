@@ -1,7 +1,8 @@
-/* Gym Tracker PWA (app.js - self-repair version)
-   - Restores default routines if localStorage routines are empty/corrupt
-   - Logs: sets, reps, weight, time
-   - Export: Excel .xls (SpreadsheetML)
+/* Gym Tracker PWA (Full app.js)
+   - Offline-first app shell (service worker)
+   - Local storage for routines + logs
+   - Default routines from your PDF (pages 2–4)
+   - Export to Excel (.xls) SpreadsheetML (works offline, no libraries)
 */
 
 const STORAGE_KEY = "gymtracker:v1";
@@ -134,56 +135,34 @@ function ytSearchUrl(exName) {
   return "https://www.youtube.com/results?search_query=" + q;
 }
 
-function setStatus(msg) {
-  const el = document.getElementById("statusText");
-  if (el) el.textContent = msg;
-}
-
-// show JS is running
-setStatus("App loaded.");
-
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { routines: seedData.routines, logs: [] };
-
-    const st = JSON.parse(raw);
-
-    // hard validation
-    if (!st || typeof st !== "object") throw new Error("bad");
-    if (!Array.isArray(st.logs)) st.logs = [];
-    if (!Array.isArray(st.routines)) st.routines = [];
-
-    // If routines got deleted / empty, restore defaults (keep logs!)
-    if (st.routines.length === 0) {
-      st.routines = seedData.routines;
+    if (!raw) {
+      return { routines: seedData.routines, logs: [] };
     }
-
+    const st = JSON.parse(raw);
+    if (!st?.routines || !st?.logs) throw new Error("bad state");
     return st;
   } catch (e) {
     return { routines: seedData.routines, logs: [] };
   }
 }
-
 function saveState() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
-
-let state = loadState();
-
-// Ensure routines not empty (extra safety)
-if (!Array.isArray(state.routines) || state.routines.length === 0) {
-  state.routines = seedData.routines;
-  if (!Array.isArray(state.logs)) state.logs = [];
-  saveState();
+function setStatus(msg) {
+  const el = document.getElementById("statusText");
+  if (el) el.textContent = msg;
 }
 
+let state = loadState();
 let currentRoutineId = state.routines[0]?.id || "";
 let currentDayId = state.routines[0]?.days?.[0]?.id || "";
 let currentDate = nowISODate();
 let filterText = "";
 
-// DOM
+// ===== DOM references =====
 const els = {
   routineList: document.getElementById("routineList"),
   dayTabs: document.getElementById("dayTabs"),
@@ -200,6 +179,7 @@ const els = {
 
 if (els.date) els.date.value = currentDate;
 
+// ===== Helpers to access data =====
 function getRoutine(rid) {
   return state.routines.find((r) => r.id === rid);
 }
@@ -223,12 +203,12 @@ function addLogEntry(entry) {
   state.logs.push(entry);
   saveState();
 }
-
 function deleteLogEntry(entryId) {
   state.logs = state.logs.filter((l) => l.id !== entryId);
   saveState();
 }
 
+// ===== Render routines list =====
 function renderRoutines() {
   if (!els.routineList) return;
   els.routineList.innerHTML = "";
@@ -255,13 +235,15 @@ function renderRoutines() {
       if (confirm(`Delete routine "${r.name}"? This will NOT delete your past logs.`)) {
         state.routines = state.routines.filter((x) => x.id !== r.id);
         if (state.routines.length === 0) {
-          state.routines = seedData.routines; // restore defaults instead of empty
+          state.routines = [
+            { id: uid("routine"), name: "My Routine", days: [{ id: uid("day"), name: "Day 1", exercises: [] }] }
+          ];
         }
         currentRoutineId = state.routines[0].id;
         currentDayId = state.routines[0].days[0].id;
         saveState();
         renderAll();
-        setStatus("Routine deleted (defaults restored if empty).");
+        setStatus("Routine deleted.");
       }
     });
     meta.appendChild(delBtn);
@@ -279,6 +261,7 @@ function renderRoutines() {
   });
 }
 
+// ===== Render day tabs =====
 function renderDays() {
   const r = getRoutine(currentRoutineId);
   if (!r || !els.dayTabs || !els.routineTitle) return;
@@ -312,6 +295,7 @@ function renderDays() {
   els.dayTabs.appendChild(add);
 }
 
+// ===== Render exercise cards =====
 function renderExercises() {
   const r = getRoutine(currentRoutineId);
   if (!r || !els.cards) return;
@@ -412,17 +396,14 @@ function renderExercises() {
   }
 }
 
+// ===== Main render =====
 function renderAll() {
-  try {
-    renderRoutines();
-    renderDays();
-    renderExercises();
-  } catch (e) {
-    console.error(e);
-    setStatus("Error: " + (e?.message || "unknown"));
-  }
+  renderRoutines();
+  renderDays();
+  renderExercises();
 }
 
+// ===== Add routine/exercise =====
 function addRoutine() {
   const name = prompt("Routine name (e.g., Upper Body):");
   if (!name) return;
@@ -452,13 +433,19 @@ function addExercise() {
   if (!name) return;
 
   const videoUrl = prompt("Video link (optional). Leave empty to use a YouTube search link:") || "";
-  d.exercises.unshift({ id: uid("ex"), name: name.trim(), videoUrl: videoUrl.trim() });
+
+  d.exercises.unshift({
+    id: uid("ex"),
+    name: name.trim(),
+    videoUrl: videoUrl.trim()
+  });
 
   saveState();
   renderExercises();
   setStatus("Exercise added.");
 }
 
+// ===== Import (JSON backup) =====
 function importData(file) {
   const reader = new FileReader();
   reader.onload = () => {
@@ -466,13 +453,6 @@ function importData(file) {
       const obj = JSON.parse(String(reader.result));
       if (!obj?.routines || !obj?.logs) throw new Error("Invalid file");
       state = obj;
-
-      // repair empty routines on import too
-      if (!Array.isArray(state.routines) || state.routines.length === 0) {
-        state.routines = seedData.routines;
-      }
-      if (!Array.isArray(state.logs)) state.logs = [];
-
       currentRoutineId = state.routines[0]?.id || "";
       currentDayId = state.routines[0]?.days?.[0]?.id || "";
       saveState();
@@ -485,7 +465,7 @@ function importData(file) {
   reader.readAsText(file);
 }
 
-// ===== Export Excel (.xls) =====
+// ===== Export (Excel .xls) =====
 function xmlEscape(s) {
   return String(s ?? "")
     .replace(/&/g, "&amp;")
@@ -494,19 +474,30 @@ function xmlEscape(s) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&apos;");
 }
+
 function sheetXML(name, rows) {
   const rowXml = rows
-    .map((r) => "<Row>" + r.map((c) => `<Cell><Data ss:Type="String">${xmlEscape(c)}</Data></Cell>`).join("") + "</Row>")
+    .map(
+      (r) =>
+        "<Row>" +
+        r
+          .map((c) => `<Cell><Data ss:Type="String">${xmlEscape(c)}</Data></Cell>`)
+          .join("") +
+        "</Row>"
+    )
     .join("");
+
   return `
   <Worksheet ss:Name="${xmlEscape(name)}">
-    <Table>${rowXml}</Table>
+    <Table>
+      ${rowXml}
+    </Table>
   </Worksheet>`;
 }
 
 function exportExcel() {
+  // Sheet 1: Logs
   const logsHeader = ["Date","Routine","Day","Exercise","SetNo","Reps","Weight","TimeSec","Volume","CreatedAt"];
-
   const logsRows = state.logs
     .slice()
     .sort((a,b) => (a.date||"").localeCompare(b.date||"") || (a.createdAt||0)-(b.createdAt||0))
@@ -531,6 +522,7 @@ function exportExcel() {
       ];
     });
 
+  // Sheet 2: Routine list
   const exHeader = ["Routine","Day","Exercise","VideoURL"];
   const exRows = [];
   state.routines.forEach(r=>{
@@ -541,6 +533,7 @@ function exportExcel() {
     });
   });
 
+  // Sheet 3: Daily summary
   const summaryHeader = ["Date","Exercise","TotalSets","TotalReps","TotalVolume"];
   const keyMap = new Map();
   state.logs.forEach(l=>{
@@ -560,6 +553,7 @@ function exportExcel() {
     cur.vol += vol;
     keyMap.set(key, cur);
   });
+
   const summaryRows = Array.from(keyMap.values())
     .sort((a,b)=> a.date.localeCompare(b.date) || a.ex.localeCompare(b.ex))
     .map(x=> [x.date, x.ex, String(x.sets), String(x.reps), String(Math.round(x.vol))]);
@@ -587,9 +581,11 @@ function exportExcel() {
   setStatus("Exported Excel (.xls) file.");
 }
 
-// Wire events
+// ===== Wire up UI events =====
 if (els.btnAddRoutine) els.btnAddRoutine.addEventListener("click", addRoutine);
 if (els.btnAddExercise) els.btnAddExercise.addEventListener("click", addExercise);
+
+// Export -> Excel
 if (els.btnExport) els.btnExport.addEventListener("click", exportExcel);
 
 if (els.fileImport) {
@@ -615,13 +611,14 @@ if (els.search) {
   });
 }
 
-// Install prompt
+// PWA install prompt (Chrome/Android)
 let deferredPrompt = null;
 window.addEventListener("beforeinstallprompt", (e) => {
   e.preventDefault();
   deferredPrompt = e;
   if (els.btnInstall) els.btnInstall.hidden = false;
 });
+
 if (els.btnInstall) {
   els.btnInstall.addEventListener("click", async () => {
     if (!deferredPrompt) return;
@@ -639,7 +636,7 @@ if ("serviceWorker" in navigator) {
       await navigator.serviceWorker.register("./sw.js");
       setStatus("Offline ready.");
     } catch (e) {
-      setStatus("Service worker failed to register.");
+      setStatus("Service worker failed to register (offline may not work).");
     }
   });
 }
