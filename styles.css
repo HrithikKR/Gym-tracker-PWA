@@ -5,7 +5,7 @@
   --card2:#18243b;
   --text:#e5e7eb;
   --muted:#9aa4b2;
-  --accent:#10b981;        /* teal/green */
+  --accent:#10b981;
   --accent2:#0ea5a8;
   --danger:#ef4444;
   --shadow: 0 12px 30px rgba(0,0,0,.35);
@@ -184,7 +184,7 @@ select, input, button{ font: inherit; }
   margin: 0 0 6px 2px;
 }
 
-/* Force dark styled inputs on Android */
+/* ---- Inputs ---- */
 .select,.input{
   width:100%;
   padding:12px 12px;
@@ -195,13 +195,21 @@ select, input, button{ font: inherit; }
   outline:none;
 }
 
-/* Remove default OS styling that causes white dropdown/date */
-.select, .input{
+.input::placeholder{ color: rgba(154,164,178,.7); }
+
+/* IMPORTANT:
+   On Android, appearance:none can break <select>.
+   Keep it ONLY for .input, and allow select default behavior. */
+.input{
   appearance: none;
   -webkit-appearance: none;
 }
 
-.input::placeholder{ color: rgba(154,164,178,.7); }
+/* Let select behave like a real dropdown */
+.select{
+  appearance: auto;
+  -webkit-appearance: menulist;
+}
 
 /* Make date picker not white on some Android builds */
 input[type="date"].input{
@@ -483,4 +491,4 @@ input[type="date"].input{
   .tab{ min-width: 90px; }
   .programBar{ flex-direction:column; }
   .statsGrid{ grid-template-columns: 1fr; }
-}
+           }
