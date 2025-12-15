@@ -229,11 +229,28 @@ function renderRoutineSelect(){
     opt.textContent = r.name;
     els.routineSelect.appendChild(opt);
   });
+
+  // fallback if currentRoutineId missing
+  if(!currentRoutineId || !state.routines.some(r=>r.id===currentRoutineId)){
+    currentRoutineId = state.routines[0]?.id || "";
+  }
   els.routineSelect.value = currentRoutineId;
-  els.routineSelect.addEventListener("change", ()=>{
+
+  // CHANGE handler
+  els.routineSelect.onchange = ()=>{
     currentRoutineId = els.routineSelect.value;
     renderDayCards();
-  });
+  };
+
+  // ✅ FORCE open dropdown on Chrome Android
+  els.routineSelect.onclick = ()=>{
+    if (typeof els.routineSelect.showPicker === "function") {
+      els.routineSelect.showPicker();
+    }
+  };
+
+  // Optional: show count so we know dropdown has items
+  setStatus(`Routines: ${els.routineSelect.options.length}`);
 }
 
 // -------- Day cards ----------
@@ -499,6 +516,11 @@ els.searchBox.addEventListener("input", ()=>{
   if(active.isRunning) renderActiveWorkout();
 });
 
+els.workoutDate.onclick = ()=>{
+  if (typeof els.workoutDate.showPicker === "function") {
+    els.workoutDate.showPicker();
+  }
+};
 // Date change
 els.workoutDate.addEventListener("change", ()=>{
   currentDate = els.workoutDate.value || nowISODate();
