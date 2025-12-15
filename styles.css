@@ -242,8 +242,58 @@ input[type="date"].input{
 
 .dayTitle{ font-size:22px; font-weight:900; }
 .dayMeta{ color: var(--muted); margin-top:4px; font-weight:700; }
-.dayArrow{ opacity:.8; font-size:18px; }
+.dayArrow{
+  opacity:.9;
+  font-size:18px;
+  transition: transform .2s ease;
+}
+.dayArrow.rot{ transform: rotate(180deg); }
 
+/* Day dropdown details */
+.dayDetails{
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+
+.dayExerciseList{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.dayExerciseRow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding: 10px 10px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+}
+
+.dayExerciseName{
+  font-weight: 900;
+  color: rgba(229,231,235,.92);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+
+.miniBtn{
+  border:none;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(16,185,129,.95);
+  color:#052017;
+  font-weight: 900;
+  cursor:pointer;
+  white-space:nowrap;
+}
+
+/* Start workout button */
 .startBtn{
   width:100%;
   margin-top: 12px;
@@ -256,7 +306,6 @@ input[type="date"].input{
   cursor:pointer;
   font-size:18px;
 }
-
 .startBtn:active{ transform: translateY(1px); }
 
 /* ---------------- Active workout header ---------------- */
@@ -316,7 +365,6 @@ input[type="date"].input{
   align-items:center;
   white-space:nowrap;
 }
-
 .tutorialBtn span{ opacity:.95; }
 
 /* ---------------- Set rows ---------------- */
@@ -423,7 +471,6 @@ input[type="date"].input{
   padding: 10px 8px;
   border-top: 1px solid rgba(255,255,255,.08);
 }
-
 .recentItem:first-child{ border-top:none; }
 
 .recentMain{ font-weight:900; font-size:18px; }
@@ -491,6 +538,4 @@ input[type="date"].input{
   .tab{ min-width: 90px; }
   .programBar{ flex-direction:column; }
   .statsGrid{ grid-template-columns: 1fr; }
-           }
-.programBar, .programLeft, .programRight { position: relative; z-index: 10; }
-.select { position: relative; z-index: 11; pointer-events: auto; }
+}
