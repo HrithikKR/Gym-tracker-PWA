@@ -1,4 +1,4 @@
-const CACHE_NAME = "wtp-cache-v4"; // change version to force refresh
+const CACHE_NAME = "wtp-cache-v5"; // change version to force refresh
 const ASSETS = [
   "./",
   "./index.html",
