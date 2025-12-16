@@ -1,125 +1,182 @@
-const STORAGE_KEY = "gymtracker:v1";
+/* =============================
+   Workout Tracker Pro - app.js
+   Full replacement (Set dropdown UI + fixes)
+   ============================= */
 
+const STORAGE_KEY = "gymtracker:v2";
+
+/* ---------------- Seed routines (Set 1/2/3 naming) ---------------- */
 const seedData = {
-  version: 1,
+  version: 2,
   routines: [
     {
       id: "routine_push",
       name: "Push Routine",
-      days: [
-        { id: "push_day1", name: "Day 1 – Push", meta: "Chest, Shoulders, Triceps", exercises: [
-          { id: "barbell_bench_press_flat", name: "Barbell Bench Press", videoUrl: "" },
+      sets: [
+        { id: "push_set1", name: "Set 1", meta: "Chest, Shoulders, Triceps", exercises: [
+          { id: "barbell_bench_press", name: "Barbell Bench Press", videoUrl: "" },
           { id: "incline_dumbbell_press", name: "Incline Dumbbell Press", videoUrl: "" },
-          { id: "dumbbell_rear_delt_flyes", name: "Rear Delt Flyes", videoUrl: "" },
+          { id: "rear_delt_flyes", name: "Rear Delt Flyes", videoUrl: "" },
           { id: "dumbbell_shoulder_press", name: "Dumbbell Shoulder Press", videoUrl: "" },
-          { id: "triceps_cable_pushdown", name: "Triceps Pushdown", videoUrl: "" },
-          { id: "triceps_overhead_extension", name: "Overhead Triceps Extension", videoUrl: "" }
+          { id: "triceps_pushdown", name: "Triceps Pushdown", videoUrl: "" },
+          { id: "overhead_triceps_ext", name: "Overhead Triceps Extension", videoUrl: "" }
         ]},
-        { id: "push_day2", name: "Day 2 – Push", meta: "Chest, Shoulders, Triceps", exercises: [
+        { id: "push_set2", name: "Set 2", meta: "Chest, Shoulders, Triceps", exercises: [
           { id: "incline_barbell_press", name: "Incline Barbell Press", videoUrl: "" },
-          { id: "dumbbell_bench_press_flat", name: "Dumbbell Bench Press", videoUrl: "" },
+          { id: "dumbbell_bench_press", name: "Dumbbell Bench Press", videoUrl: "" },
           { id: "dumbbell_kickback", name: "Dumbbell Kickback", videoUrl: "" },
-          { id: "barbell_skull_crusher", name: "Skull Crusher", videoUrl: "" },
-          { id: "dumbbell_upright_row", name: "Upright Row", videoUrl: "" },
-          { id: "dumbbell_front_raise", name: "Front Raise", videoUrl: "" }
+          { id: "skull_crusher", name: "Skull Crusher", videoUrl: "" },
+          { id: "upright_row", name: "Upright Row", videoUrl: "" },
+          { id: "front_raise", name: "Front Raise", videoUrl: "" }
         ]},
-        { id: "push_day3", name: "Day 3 – Push", meta: "Shoulders + Chest + Triceps", exercises: [
-          { id: "dumbbell_lateral_raises", name: "Lateral Raises", videoUrl: "" },
-          { id: "barbell_military_press", name: "Barbell Military Press", videoUrl: "" },
-          { id: "cable_chest_fly_mid_low", name: "Cable Chest Fly", videoUrl: "" },
+        { id: "push_set3", name: "Set 3", meta: "Shoulders + Chest + Triceps", exercises: [
+          { id: "lateral_raises", name: "Lateral Raises", videoUrl: "" },
+          { id: "military_press", name: "Barbell Military Press", videoUrl: "" },
+          { id: "cable_chest_fly", name: "Cable Chest Fly", videoUrl: "" },
           { id: "decline_dumbbell_press", name: "Decline Dumbbell Press", videoUrl: "" },
-          { id: "cross_body_cable_triceps_extension", name: "Cross-Body Triceps Ext.", videoUrl: "" },
-          { id: "cable_overhead_triceps_extension_rope", name: "Overhead Rope Extension", videoUrl: "" }
+          { id: "cross_body_triceps", name: "Cross-Body Triceps Ext.", videoUrl: "" },
+          { id: "overhead_rope_ext", name: "Overhead Rope Extension", videoUrl: "" }
         ]}
       ]
     },
     {
       id: "routine_pull",
       name: "Pull Routine",
-      days: [
-        { id: "pull_day1", name: "Day 1 – Pull", meta: "Back, Rear Delts, Biceps", exercises: [
-          { id: "barbell_deadlift", name: "Barbell Deadlift", videoUrl: "" },
-          { id: "bent_over_rows", name: "Bent Over Rows", videoUrl: "" },
-          { id: "dumbbell_shrugs", name: "Dumbbell Shrugs", videoUrl: "" },
+      sets: [
+        { id: "pull_set1", name: "Set 1", meta: "Back, Rear Delts, Biceps", exercises: [
+          { id: "deadlift", name: "Barbell Deadlift", videoUrl: "" },
+          { id: "bent_over_row", name: "Bent Over Rows", videoUrl: "" },
+          { id: "shrugs", name: "Dumbbell Shrugs", videoUrl: "" },
           { id: "barbell_curl", name: "Barbell Curl", videoUrl: "" },
           { id: "hammer_curl", name: "Hammer Curl", videoUrl: "" },
-          { id: "behind_the_back_cable_wrist_curl", name: "Behind-Back Wrist Curl", videoUrl: "" }
+          { id: "behind_back_wrist_curl", name: "Behind-Back Wrist Curl", videoUrl: "" }
         ]},
-        { id: "pull_day2", name: "Day 2 – Pull", meta: "Back + Biceps + Forearms", exercises: [
+        { id: "pull_set2", name: "Set 2", meta: "Back + Biceps + Forearms", exercises: [
           { id: "lat_pulldown", name: "Lat Pulldown", videoUrl: "" },
-          { id: "barbell_t_bar_row", name: "T-Bar Row", videoUrl: "" },
-          { id: "reverse_dumbbell_fly", name: "Reverse Dumbbell Fly", videoUrl: "" },
+          { id: "tbar_row", name: "T-Bar Row", videoUrl: "" },
+          { id: "reverse_fly", name: "Reverse Dumbbell Fly", videoUrl: "" },
           { id: "preacher_curl", name: "Preacher Curl", videoUrl: "" },
-          { id: "incline_dumbbell_curl", name: "Incline Dumbbell Curl", videoUrl: "" },
-          { id: "barbell_reverse_wrist_curl_bench", name: "Reverse Wrist Curl", videoUrl: "" }
+          { id: "incline_db_curl", name: "Incline Dumbbell Curl", videoUrl: "" },
+          { id: "reverse_wrist_curl", name: "Reverse Wrist Curl", videoUrl: "" }
         ]},
-        { id: "pull_day3", name: "Day 3 – Pull", meta: "Back + Arms", exercises: [
-          { id: "seated_cable_rows", name: "Seated Cable Rows", videoUrl: "" },
-          { id: "dumbbell_pullover", name: "Dumbbell Pullover", videoUrl: "" },
-          { id: "barbell_upright_row_wide_grip", name: "Upright Row (Wide)", videoUrl: "" },
+        { id: "pull_set3", name: "Set 3", meta: "Back + Arms", exercises: [
+          { id: "seated_cable_row", name: "Seated Cable Rows", videoUrl: "" },
+          { id: "db_pullover", name: "Dumbbell Pullover", videoUrl: "" },
+          { id: "upright_row_wide", name: "Upright Row (Wide)", videoUrl: "" },
           { id: "reverse_barbell_curl", name: "Reverse Barbell Curl", videoUrl: "" },
-          { id: "dumbbell_concentration_curl", name: "Concentration Curl", videoUrl: "" },
-          { id: "cable_high_curl_face_away", name: "Cable High Curl", videoUrl: "" }
+          { id: "concentration_curl", name: "Concentration Curl", videoUrl: "" },
+          { id: "cable_high_curl", name: "Cable High Curl", videoUrl: "" }
         ]}
       ]
     },
     {
       id: "routine_legs",
       name: "Leg Routine",
-      days: [
-        { id: "legs_day", name: "Day – Legs", meta: "Quads, Glutes, Hamstrings", exercises: [
-          { id: "barbell_squat", name: "Barbell Squat", videoUrl: "" },
+      sets: [
+        { id: "legs_set1", name: "Set 1", meta: "Quads, Glutes, Hamstrings", exercises: [
+          { id: "squat", name: "Barbell Squat", videoUrl: "" },
           { id: "leg_press", name: "Leg Press", videoUrl: "" },
-          { id: "abductor_extension", name: "Abductor Extension", videoUrl: "" },
-          { id: "adductor_clamp", name: "Adductor Clamp", videoUrl: "" },
+          { id: "abductor", name: "Abductor Extension", videoUrl: "" },
+          { id: "adductor", name: "Adductor Clamp", videoUrl: "" },
           { id: "leg_extension", name: "Leg Extension", videoUrl: "" },
           { id: "hamstring_curl", name: "Hamstring Curl", videoUrl: "" },
-          { id: "seated_calf_raise", name: "Seated Calf Raise", videoUrl: "" },
-          { id: "standing_calf_raise", name: "Standing Calf Raise", videoUrl: "" }
+          { id: "seated_calf", name: "Seated Calf Raise", videoUrl: "" },
+          { id: "standing_calf", name: "Standing Calf Raise", videoUrl: "" }
         ]}
       ]
     }
   ]
 };
 
-// ---------- helpers ----------
+/* ---------------- Helpers ---------------- */
+function uid(prefix="id"){ return `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now().toString(16)}`; }
+function safeNum(v){ const n = Number(v); return Number.isFinite(n) ? n : 0; }
 function nowISODate(){
   const d = new Date();
-  // FIX: Correct timezone offset calculation
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  const off = d.getTimezoneOffset();
+  const local = new Date(d.getTime() - off*60*1000);
+  return local.toISOString().slice(0,10);
 }
-function uid(prefix="id"){ return prefix+"_"+Math.random().toString(16).slice(2)+"_"+Date.now().toString(16); }
-function safeNum(v){ const n = Number(v); return Number.isFinite(n) ? n : 0; }
+function fmtTime(ms){
+  const s = Math.floor(ms/1000);
+  const hh = String(Math.floor(s/3600)).padStart(2,"0");
+  const mm = String(Math.floor((s%3600)/60)).padStart(2,"0");
+  const ss = String(s%60).padStart(2,"0");
+  return `${hh}:${mm}:${ss}`;
+}
 function ytSearchUrl(name){
-  const q = encodeURIComponent(name + " proper form tutorial");
-  return "https://www.youtube.com/results?search_query=" + q;
+  const q = encodeURIComponent(`${name} proper form tutorial`);
+  return `https://www.youtube.com/results?search_query=${q}`;
 }
 function setStatus(msg){
   const el = document.getElementById("statusText");
   if(el) el.textContent = msg;
 }
+function niceDateTime(ts){
+  try{
+    return new Date(ts).toLocaleString();
+  }catch{
+    return "";
+  }
+}
 
+/* ---------------- Load/Save ---------------- */
 function loadState(){
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
-    if(!raw) return {routines: seedData.routines, logs: [], sessions: []};
+    if(!raw){
+      return { version: 2, routines: seedData.routines, logs: [], sessions: [], lastCompleted: null };
+    }
     const st = JSON.parse(raw);
+
+    // migrate old shape (days -> sets)
+    if(Array.isArray(st.routines)){
+      st.routines.forEach(r=>{
+        if(Array.isArray(r.days) && !Array.isArray(r.sets)){
+          r.sets = r.days;
+          delete r.days;
+        }
+      });
+    }
+
     if(!Array.isArray(st.routines) || st.routines.length===0) st.routines = seedData.routines;
     if(!Array.isArray(st.logs)) st.logs = [];
     if(!Array.isArray(st.sessions)) st.sessions = [];
+    if(!("lastCompleted" in st)) st.lastCompleted = null;
+
     return st;
   }catch{
-    return {routines: seedData.routines, logs: [], sessions: []};
+    return { version: 2, routines: seedData.routines, logs: [], sessions: [], lastCompleted: null };
   }
 }
-function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+function saveState(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
 
+/* ---------------- Deduplicate old bad data ----------------
+   keep latest log per (date,routineId,setId,exerciseId,setNo) */
+function dedupeLogsKeepLatest(){
+  const map = new Map();
+  for(const l of state.logs){
+    // old data may have dayId; treat it as setId
+    const setId = l.setId || l.dayId || "";
+    const key = `${l.date}|${l.routineId}|${setId}|${l.exerciseId}|${l.setNo}`;
+    const prev = map.get(key);
+    if(!prev || (l.createdAt||0) > (prev.createdAt||0)){
+      const fixed = { ...l, setId };
+      delete fixed.dayId;
+      map.set(key, fixed);
+    }
+  }
+  state.logs = Array.from(map.values());
+}
+
+/* ---------------- State ---------------- */
 let state = loadState();
+dedupeLogsKeepLatest();
+saveState();
 
-// ---------- UI refs ----------
+/* ---------------- DOM refs (must match your index.html ids) ---------------- */
 const els = {
   tabs: Array.from(document.querySelectorAll(".tab")),
   panels: {
@@ -129,7 +186,7 @@ const els = {
   },
 
   routineSelect: document.getElementById("routineSelect"),
-  dayList: document.getElementById("dayList"),
+  dayList: document.getElementById("dayList"),                 // we will render Set dropdown UI inside this container
   activeWorkout: document.getElementById("activeWorkout"),
   activeTitle: document.getElementById("activeTitle"),
   activeMeta: document.getElementById("activeMeta"),
@@ -163,69 +220,25 @@ const els = {
   recentActivity: document.getElementById("recentActivity")
 };
 
-// ---------- app state ----------
+/* ---------------- App UI state ---------------- */
 let currentDate = nowISODate();
 if(els.workoutDate) els.workoutDate.value = currentDate;
 
 let currentRoutineId = state.routines[0]?.id || "";
-let expandedDayId = null;  // Day dropdown (▼) state
-
-let active = { isRunning:false, routineId:"", dayId:"", startedAt:0 };
+let currentSetId = state.routines[0]?.sets?.[0]?.id || "";
 let filterText = "";
 
-// ---------- Tabs ----------
-els.tabs.forEach(btn=>{
-  btn.addEventListener("click", ()=>{
-    els.tabs.forEach(x=>x.classList.remove("active"));
-    btn.classList.add("active");
-    const t = btn.dataset.tab;
+/* Active workout session */
+let active = { isRunning:false, routineId:"", setId:"", startedAt:0 };
 
-    Object.values(els.panels).forEach(p=>p?.classList.remove("active"));
-    if(els.panels[t]) els.panels[t].classList.add("active");
-
-    if(t==="history"){ showHistoryList(); renderHistory(); }
-    if(t==="stats") renderStats();
-  });
-});
-
-// ---------- Data helpers ----------
-function getRoutine(rid){ return state.routines.find(r=>r.id===rid); }
-function getDay(r, did){ return r?.days?.find(d=>d.id===did); }
-
-function logsFor(date, routineId, dayId, exerciseId){
-  return state.logs
-    .filter(l => l.date===date && l.routineId===routineId && l.dayId===dayId && l.exerciseId===exerciseId)
-    .sort((a,b)=> (a.setNo||0)-(b.setNo||0) || (a.createdAt||0)-(b.createdAt||0));
-}
-function logsForSession(date, routineId, dayId){
-  return state.logs
-    .filter(l => l.date===date && l.routineId===routineId && l.dayId===dayId)
-    .slice()
-    .sort((a,b)=> (a.createdAt||0)-(b.createdAt||0));
-}
-function totalVolumeForSession(date, routineId, dayId){
-  return logsForSession(date, routineId, dayId)
-    .reduce((s,l)=> s + (Number(l.reps||0)*Number(l.weight||0)), 0);
-}
-function totalSetsForSession(date, routineId, dayId){
-  return logsForSession(date, routineId, dayId).length;
-}
-
-// ---------- Timer ----------
+/* Timer */
 let timerTick = null;
-function fmtTime(ms){
-  const s = Math.floor(ms/1000);
-  const hh = String(Math.floor(s/3600)).padStart(2,"0");
-  const mm = String(Math.floor((s%3600)/60)).padStart(2,"0");
-  const ss = String(s%60).padStart(2,"0");
-  return `${hh}:${mm}:${ss}`;
-}
 function startTimer(){
   if(!els.timerCard || !els.timerValue) return;
   els.timerCard.hidden = false;
   if(timerTick) clearInterval(timerTick);
-  timerTick = setInterval(()=>{ 
-    if(els.timerValue) els.timerValue.textContent = fmtTime(Date.now() - active.startedAt); 
+  timerTick = setInterval(()=>{
+    els.timerValue.textContent = fmtTime(Date.now() - active.startedAt);
   }, 250);
 }
 function stopTimer(){
@@ -234,7 +247,76 @@ function stopTimer(){
   if(els.timerCard) els.timerCard.hidden = true;
 }
 
-// ---------- Routine select ----------
+/* ---------------- Data helpers ---------------- */
+function getRoutine(rid){ return state.routines.find(r=>r.id===rid); }
+function getSet(r, sid){ return (r?.sets||[]).find(s=>s.id===sid); }
+
+function logsFor(date, routineId, setId, exerciseId){
+  return state.logs
+    .filter(l => l.date===date && l.routineId===routineId && (l.setId||"")===setId && l.exerciseId===exerciseId)
+    .sort((a,b)=> (a.setNo||0)-(b.setNo||0) || (a.createdAt||0)-(b.createdAt||0));
+}
+function logsForSession(date, routineId, setId){
+  return state.logs
+    .filter(l => l.date===date && l.routineId===routineId && (l.setId||"")===setId)
+    .slice()
+    .sort((a,b)=> (a.createdAt||0)-(b.createdAt||0));
+}
+function totalVolumeForSession(date, routineId, setId){
+  return logsForSession(date, routineId, setId)
+    .reduce((s,l)=> s + (Number(l.reps||0)*Number(l.weight||0)), 0);
+}
+function totalSetsForSession(date, routineId, setId){
+  return logsForSession(date, routineId, setId).length;
+}
+
+function getAllSessions(){
+  // sessions exist; if empty, synth from logs
+  if(state.sessions && state.sessions.length) return state.sessions.slice();
+
+  const map = new Map();
+  state.logs.forEach(l=>{
+    const k = `${l.date}||${l.routineId}||${l.setId}`;
+    if(!map.has(k)){
+      map.set(k, { id: uid("sess"), date:l.date, routineId:l.routineId, setId:l.setId, startedAt:l.createdAt||0, endedAt:l.createdAt||0 });
+    }else{
+      const s = map.get(k);
+      s.startedAt = Math.min(s.startedAt, l.createdAt||s.startedAt);
+      s.endedAt = Math.max(s.endedAt, l.createdAt||s.endedAt);
+    }
+  });
+  return Array.from(map.values());
+}
+
+function latestCompleted(){
+  if(state.lastCompleted && state.lastCompleted.endedAt) return state.lastCompleted;
+  const sessions = getAllSessions().filter(s=>s.endedAt && s.endedAt>0);
+  sessions.sort((a,b)=> (b.endedAt||0)-(a.endedAt||0));
+  if(!sessions.length) return null;
+  return {
+    date: sessions[0].date,
+    routineId: sessions[0].routineId,
+    setId: sessions[0].setId,
+    endedAt: sessions[0].endedAt
+  };
+}
+
+/* ---------------- Tabs ---------------- */
+els.tabs.forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    els.tabs.forEach(x=>x.classList.remove("active"));
+    btn.classList.add("active");
+    const t = btn.dataset.tab;
+
+    Object.values(els.panels).forEach(p=>p?.classList.remove("active"));
+    els.panels[t]?.classList.add("active");
+
+    if(t==="history"){ showHistoryList(); renderHistory(); }
+    if(t==="stats"){ renderStats(); }
+  });
+});
+
+/* ---------------- Routine select ---------------- */
 function renderRoutineSelect(){
   if(!els.routineSelect) return;
 
@@ -252,121 +334,174 @@ function renderRoutineSelect(){
   els.routineSelect.value = currentRoutineId;
 
   els.routineSelect.onchange = ()=>{
+    if(active.isRunning){
+      alert("Finish the current workout first.");
+      els.routineSelect.value = active.routineId;
+      return;
+    }
     currentRoutineId = els.routineSelect.value;
-    expandedDayId = null;
-    renderDayCards();
+    const r = getRoutine(currentRoutineId);
+    currentSetId = r?.sets?.[0]?.id || "";
+    renderSetHomeUI();
   };
+
+  // lock during workout
+  els.routineSelect.disabled = active.isRunning;
 }
 
-// ---------- Day cards (▼ dropdown) ----------
-function renderDayCards(){
+/* ---------------- Workout home UI (Set dropdown) ---------------- */
+function renderSetHomeUI(){
+  if(!els.dayList) return;
+
   const r = getRoutine(currentRoutineId);
-  if(!r || !els.dayList) return;
+  if(!r) return;
+
+  // fallback set
+  if(!currentSetId || !(r.sets||[]).some(s=>s.id===currentSetId)){
+    currentSetId = r.sets?.[0]?.id || "";
+  }
+  const setObj = getSet(r, currentSetId);
 
   els.dayList.innerHTML = "";
 
-  r.days.forEach(d=>{
-    const card = document.createElement("div");
-    card.className = "dayCard";
+  // Last completed banner
+  const last = latestCompleted();
+  if(last){
+    const lr = getRoutine(last.routineId);
+    const ls = lr ? getSet(lr, last.setId) : null;
+    const banner = document.createElement("div");
+    banner.className = "dayCard";
+    banner.innerHTML = `
+      <div class="dayTitle" style="font-size:18px;">Last completed</div>
+      <div class="dayMeta" style="margin-top:6px;color:rgba(16,185,129,.95);font-weight:900;">
+        ${lr?.name || "Routine"} • ${ls?.name || "Set"}
+      </div>
+      <div class="dayMeta" style="margin-top:6px;">${niceDateTime(last.endedAt)}</div>
+    `;
+    els.dayList.appendChild(banner);
+  }
 
-    const top = document.createElement("div");
-    top.className = "dayTop";
-    top.style.cursor = "pointer";
+  // Set dropdown card
+  const selectorCard = document.createElement("div");
+  selectorCard.className = "dayCard";
 
-    const left = document.createElement("div");
-    const title = document.createElement("div");
-    title.className = "dayTitle";
-    title.textContent = d.name;
+  const title = document.createElement("div");
+  title.className = "sectionTitle";
+  title.style.margin = "0 0 10px 0";
+  title.textContent = "Choose Set";
 
-    const meta = document.createElement("div");
-    meta.className = "dayMeta";
-    meta.textContent = `${d.meta || "Workout"} • ${(d.exercises?.length||0)} exercises`;
+  const sel = document.createElement("select");
+  sel.className = "select";
+  sel.id = "setSelect";
 
-    left.appendChild(title);
-    left.appendChild(meta);
+  (r.sets||[]).forEach(s=>{
+    const opt = document.createElement("option");
+    opt.value = s.id;
+    opt.textContent = `${s.name}`;
+    sel.appendChild(opt);
+  });
+  sel.value = currentSetId;
 
-    const arrow = document.createElement("div");
-    arrow.className = "dayArrow";
-    arrow.textContent = "▼";
+  sel.onchange = ()=>{
+    if(active.isRunning){
+      alert("Finish the current workout first.");
+      sel.value = active.setId;
+      return;
+    }
+    currentSetId = sel.value;
+    renderSetHomeUI();
+  };
 
-    const isExpanded = expandedDayId === d.id;
-    if(isExpanded) arrow.classList.add("rot");
+  // Show selected set details
+  const setTitle = document.createElement("div");
+  setTitle.className = "dayTitle";
+  setTitle.style.marginTop = "12px";
+  setTitle.textContent = setObj?.name || "Set";
 
-    top.appendChild(left);
-    top.appendChild(arrow);
+  const meta = document.createElement("div");
+  meta.className = "dayMeta";
+  meta.textContent = `${setObj?.meta || "Workout"} • ${(setObj?.exercises?.length||0)} exercises`;
 
-    top.addEventListener("click", ()=>{
-      expandedDayId = (expandedDayId === d.id) ? null : d.id;
-      renderDayCards();
+  const preview = document.createElement("div");
+  preview.className = "dayDetails";
+
+  const list = document.createElement("div");
+  list.className = "dayExerciseList";
+
+  (setObj?.exercises || []).forEach(ex=>{
+    const row = document.createElement("div");
+    row.className = "dayExerciseRow";
+
+    const nm = document.createElement("div");
+    nm.className = "dayExerciseName";
+    nm.textContent = ex.name;
+
+    const tut = document.createElement("button");
+    tut.className = "miniBtn";
+    tut.textContent = "Tutorial";
+    tut.addEventListener("click", ()=>{
+      const url = (ex.videoUrl && ex.videoUrl.trim()) ? ex.videoUrl.trim() : ytSearchUrl(ex.name);
+      window.open(url, "_blank", "noreferrer");
     });
 
-    card.appendChild(top);
-
-    if(isExpanded){
-      const details = document.createElement("div");
-      details.className = "dayDetails";
-
-      const list = document.createElement("div");
-      list.className = "dayExerciseList";
-
-      (d.exercises || []).forEach(ex=>{
-        const row = document.createElement("div");
-        row.className = "dayExerciseRow";
-
-        const nm = document.createElement("div");
-        nm.className = "dayExerciseName";
-        nm.textContent = ex.name;
-
-        const tut = document.createElement("button");
-        tut.className = "miniBtn";
-        tut.textContent = "Tutorial";
-        tut.addEventListener("click", (e)=>{
-          e.stopPropagation();
-          const url = (ex.videoUrl && ex.videoUrl.trim()) ? ex.videoUrl.trim() : ytSearchUrl(ex.name);
-          window.open(url, "_blank", "noreferrer");
-        });
-
-        row.appendChild(nm);
-        row.appendChild(tut);
-        list.appendChild(row);
-      });
-
-      details.appendChild(list);
-
-      const btn = document.createElement("button");
-      btn.className = "startBtn";
-      btn.innerHTML = "▶ Start Workout";
-      btn.addEventListener("click", (e)=>{
-        e.stopPropagation();
-        beginWorkout(currentRoutineId, d.id);
-      });
-
-      details.appendChild(btn);
-      card.appendChild(details);
-    }
-
-    els.dayList.appendChild(card);
+    row.appendChild(nm);
+    row.appendChild(tut);
+    list.appendChild(row);
   });
+
+  const startBtn = document.createElement("button");
+  startBtn.className = "startBtn";
+  startBtn.innerHTML = "▶ Start Workout";
+  startBtn.addEventListener("click", ()=>{
+    beginWorkout(currentRoutineId, currentSetId);
+  });
+
+  selectorCard.appendChild(title);
+  selectorCard.appendChild(sel);
+  selectorCard.appendChild(setTitle);
+  selectorCard.appendChild(meta);
+  preview.appendChild(list);
+  selectorCard.appendChild(preview);
+  selectorCard.appendChild(startBtn);
+
+  // Disable dropdown while workout running
+  sel.disabled = active.isRunning;
+  startBtn.disabled = active.isRunning;
+
+  els.dayList.appendChild(selectorCard);
+
+  // lock routine select if needed
+  renderRoutineSelect();
 }
 
-// ---------- Begin/Finish workout ----------
-function beginWorkout(routineId, dayId){
+/* ---------------- Begin/Finish workout ---------------- */
+function beginWorkout(routineId, setId){
+  if(active.isRunning) return;
+
   active.isRunning = true;
   active.routineId = routineId;
-  active.dayId = dayId;
+  active.setId = setId;
   active.startedAt = Date.now();
 
+  // persist session
   state.sessions.push({
     id: uid("sess"),
     date: currentDate,
     routineId,
-    dayId,
+    setId,
     startedAt: active.startedAt,
     endedAt: 0
   });
   saveState();
 
   if(els.activeWorkout) els.activeWorkout.hidden = false;
+
+  // keep UI aligned
+  currentRoutineId = routineId;
+  currentSetId = setId;
+
+  renderRoutineSelect();
+  renderSetHomeUI();
   renderActiveWorkout();
   startTimer();
   setStatus("Workout started.");
@@ -374,45 +509,78 @@ function beginWorkout(routineId, dayId){
 
 function finishWorkout(){
   if(!active.isRunning) return;
+
   active.isRunning = false;
 
+  // close latest open session
   for(let i=state.sessions.length-1; i>=0; i--){
     const s = state.sessions[i];
-    if(s.date===currentDate && s.routineId===active.routineId && s.dayId===active.dayId && !s.endedAt){
+    if(s.date===currentDate && s.routineId===active.routineId && s.setId===active.setId && !s.endedAt){
       s.endedAt = Date.now();
+
+      state.lastCompleted = {
+        date: s.date,
+        routineId: s.routineId,
+        setId: s.setId,
+        endedAt: s.endedAt
+      };
       break;
     }
   }
-  saveState();
 
+  saveState();
   stopTimer();
+
   if(els.activeWorkout) els.activeWorkout.hidden = true;
 
-  setStatus("Workout finished.");
+  renderRoutineSelect();
+  renderSetHomeUI();
   renderHistory();
   renderStats();
+
+  setStatus("Workout finished.");
 }
 
 if(els.btnFinishWorkout) els.btnFinishWorkout.addEventListener("click", finishWorkout);
 
-// ---------- Active workout render ----------
+/* ---------------- Active workout render ---------------- */
 function renderActiveWorkout(){
   const r = getRoutine(active.routineId);
-  const d = r ? getDay(r, active.dayId) : null;
-  if(!d) return;
+  const s = r ? getSet(r, active.setId) : null;
+  if(!s) return;
 
-  if(els.activeTitle) els.activeTitle.textContent = d.name;
-  if(els.activeMeta) els.activeMeta.textContent = `${d.meta || "Workout"} • ${(d.exercises?.length||0)} exercises`;
-  renderExercises(d);
+  // header
+  if(els.activeTitle) els.activeTitle.textContent = `${r.name} • ${s.name}`;
+  const setsLogged = totalSetsForSession(currentDate, active.routineId, active.setId);
+  const vol = Math.round(totalVolumeForSession(currentDate, active.routineId, active.setId));
+  if(els.activeMeta) els.activeMeta.textContent = `${s.meta || "Workout"} • ${s.exercises?.length||0} exercises • ${setsLogged} sets • Vol ${vol}`;
+
+  renderExercises(s);
 }
 
-function renderExercises(day){
+/* ---------------- Exercises + Sets (FIXED delete + no duplicates) ---------------- */
+function renderExercises(setObj){
   if(!els.exerciseList) return;
 
   const q = (filterText||"").toLowerCase();
-  const exs = (day.exercises||[]).filter(ex=> ex.name.toLowerCase().includes(q));
+  const exs = (setObj.exercises||[]).filter(ex=> ex.name.toLowerCase().includes(q));
 
   els.exerciseList.innerHTML = "";
+
+  // Build an index so we NEVER create duplicates for same setNo
+  const existingAll = state.logs.filter(l =>
+    l.date===currentDate &&
+    l.routineId===active.routineId &&
+    l.setId===active.setId
+  );
+  const logMap = new Map(); // key: exerciseId|setNo -> log
+  for(const l of existingAll){
+    const key = `${l.exerciseId}|${l.setNo}`;
+    const prev = logMap.get(key);
+    if(!prev || (l.createdAt||0) > (prev.createdAt||0)){
+      logMap.set(key, l);
+    }
+  }
 
   exs.forEach(ex=>{
     const card = document.createElement("div");
@@ -426,9 +594,12 @@ function renderExercises(day){
     name.className = "exerciseName";
     name.textContent = ex.name;
 
+    const existingForEx = logsFor(currentDate, active.routineId, active.setId, ex.id);
+    const exVol = Math.round(existingForEx.reduce((s,l)=> s + (Number(l.reps||0)*Number(l.weight||0)), 0));
+
     const sub = document.createElement("div");
     sub.className = "exerciseSub";
-    sub.textContent = "Target: — (log sets below)";
+    sub.textContent = `${existingForEx.length} set(s) • Volume: ${exVol}`;
 
     left.appendChild(name);
     left.appendChild(sub);
@@ -445,18 +616,19 @@ function renderExercises(day){
     head.appendChild(tut);
     card.appendChild(head);
 
-    const existing = logsFor(currentDate, active.routineId, active.dayId, ex.id);
-    const rowsToShow = Math.max(4, existing.length);
+    const rowsToShow = Math.max(4, existingForEx.length);
 
     for(let i=0;i<rowsToShow;i++){
-      const log = existing[i] || null;
+      const setNo = i+1;
+      const mapKey = `${ex.id}|${setNo}`;
+      let logRef = logMap.get(mapKey) || null;
 
       const row = document.createElement("div");
       row.className = "setGrid";
 
       const num = document.createElement("div");
       num.className = "setNum";
-      num.textContent = String(i+1);
+      num.textContent = String(setNo);
 
       const wWrap = document.createElement("div");
       const wLab = document.createElement("div");
@@ -465,7 +637,7 @@ function renderExercises(day){
       const w = document.createElement("input");
       w.className = "smallInput";
       w.type = "number"; w.step = "0.5"; w.min = "0";
-      w.value = log ? String(log.weight ?? 0) : "0";
+      w.value = logRef ? String(logRef.weight ?? 0) : "0";
       wWrap.appendChild(wLab); wWrap.appendChild(w);
 
       const rWrap = document.createElement("div");
@@ -475,51 +647,59 @@ function renderExercises(day){
       const reps = document.createElement("input");
       reps.className = "smallInput";
       reps.type = "number"; reps.min = "0";
-      reps.value = log ? String(log.reps ?? 0) : "0";
+      reps.value = logRef ? String(logRef.reps ?? 0) : "0";
       rWrap.appendChild(rLab); rWrap.appendChild(reps);
 
       const del = document.createElement("button");
       del.className = "trashMini";
       del.textContent = "🗑";
-      del.disabled = !log;
+      del.disabled = !logRef;
 
       function ensureLog(){
-        if(log) return log;
+        if(logRef) return logRef;
+
         const newLog = {
           id: uid("log"),
           date: currentDate,
           routineId: active.routineId,
-          dayId: active.dayId,
+          setId: active.setId,
           exerciseId: ex.id,
-          setNo: i+1,
+          setNo,
           reps: 0,
           weight: 0,
           seconds: 0,
           createdAt: Date.now()
         };
         state.logs.push(newLog);
-        saveState();
+        logRef = newLog;
+        logMap.set(mapKey, newLog);
         del.disabled = false;
-        return newLog;
+        saveState();
+        return logRef;
       }
 
       w.addEventListener("change", ()=>{
         const L = ensureLog();
         L.weight = Math.max(0, safeNum(w.value));
+        L.createdAt = Date.now();
         saveState();
+        renderActiveWorkout();
         setStatus("Saved.");
       });
 
       reps.addEventListener("change", ()=>{
         const L = ensureLog();
         L.reps = Math.max(0, Math.floor(safeNum(reps.value)));
+        L.createdAt = Date.now();
         saveState();
+        renderActiveWorkout();
         setStatus("Saved.");
       });
 
       del.addEventListener("click", ()=>{
-        if(!log) return;
-        state.logs = state.logs.filter(x=>x.id !== log.id);
+        if(!logRef) return;
+        state.logs = state.logs.filter(x=>x.id !== logRef.id);
+        logMap.delete(mapKey);
         saveState();
         renderActiveWorkout();
         setStatus("Deleted set.");
@@ -536,19 +716,22 @@ function renderExercises(day){
     addBtn.className = "addSetBtn";
     addBtn.textContent = "+ Add Set";
     addBtn.addEventListener("click", ()=>{
-      const nextNo = logsFor(currentDate, active.routineId, active.dayId, ex.id).length + 1;
-      state.logs.push({
+      // adds next set number for this exercise
+      const existing = logsFor(currentDate, active.routineId, active.setId, ex.id);
+      const nextNo = existing.length + 1;
+      const newLog = {
         id: uid("log"),
         date: currentDate,
         routineId: active.routineId,
-        dayId: active.dayId,
+        setId: active.setId,
         exerciseId: ex.id,
         setNo: nextNo,
         reps: 0,
         weight: 0,
         seconds: 0,
         createdAt: Date.now()
-      });
+      };
+      state.logs.push(newLog);
       saveState();
       renderActiveWorkout();
       setStatus("Added set.");
@@ -566,15 +749,13 @@ function renderExercises(day){
   }
 }
 
-// Search
+/* ---------------- Search + Date ---------------- */
 if(els.searchBox){
   els.searchBox.addEventListener("input", ()=>{
     filterText = els.searchBox.value || "";
     if(active.isRunning) renderActiveWorkout();
   });
 }
-
-// Date change
 if(els.workoutDate){
   els.workoutDate.addEventListener("change", ()=>{
     currentDate = els.workoutDate.value || nowISODate();
@@ -585,49 +766,52 @@ if(els.workoutDate){
   });
 }
 
-// Add exercise
+/* ---------------- Add exercise ---------------- */
 if(els.btnAddExercise){
   els.btnAddExercise.addEventListener("click", ()=>{
-    if(!active.isRunning){ alert("Start a workout first."); return; }
+    if(!active.isRunning){
+      alert("Start a workout first.");
+      return;
+    }
     const r = getRoutine(active.routineId);
-    const d = r ? getDay(r, active.dayId) : null;
-    if(!d) return;
+    const s = r ? getSet(r, active.setId) : null;
+    if(!s) return;
 
     const name = prompt("Exercise name:");
     if(!name) return;
 
     const videoUrl = prompt("Video link (optional). Leave empty for YouTube search:") || "";
-    d.exercises.unshift({ id: uid("ex"), name: name.trim(), videoUrl: videoUrl.trim() });
+    s.exercises.unshift({ id: uid("ex"), name: name.trim(), videoUrl: videoUrl.trim() });
     saveState();
 
     renderActiveWorkout();
-    renderDayCards();
+    renderSetHomeUI();
     setStatus("Exercise added.");
   });
 }
 
-// ---------- CSV Export ----------
+/* ---------------- CSV Export ---------------- */
 function csvEscape(value){
   const s = String(value ?? "");
   if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g,'""')}"`;
   return s;
 }
 function exportCSV(){
-  const header = ["Date","Routine","Day","Exercise","SetNo","Reps","Weight","TimeSec","Volume","CreatedAtISO"];
+  const header = ["Date","Routine","Set","Exercise","SetNo","Reps","Weight","TimeSec","Volume","CreatedAtISO"];
   const rows = state.logs
     .slice()
     .sort((a,b)=> (a.date||"").localeCompare(b.date||"") || (a.createdAt||0)-(b.createdAt||0))
     .map(l=>{
       const r = getRoutine(l.routineId);
-      const d = r?.days?.find(x=>x.id===l.dayId);
-      const ex = d?.exercises?.find(x=>x.id===l.exerciseId);
+      const s = r?.sets?.find(x=>x.id===l.setId);
+      const ex = s?.exercises?.find(x=>x.id===l.exerciseId);
       const reps = Number(l.reps||0);
       const wt = Number(l.weight||0);
       const vol = reps * wt;
       return [
         l.date || "",
         r?.name || "",
-        d?.name || "",
+        s?.name || "",
         ex?.name || l.exerciseId || "",
         l.setNo ?? "",
         l.reps ?? "",
@@ -644,7 +828,7 @@ function exportCSV(){
   const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
   const a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
-  a.download = `gymtracker-export-${new Date().toISOString().slice(0,10)}.csv`;
+  a.download = `workout-export-${new Date().toISOString().slice(0,10)}.csv`;
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -652,35 +836,45 @@ function exportCSV(){
 }
 if(els.btnExport) els.btnExport.addEventListener("click", exportCSV);
 
-// ---------- Import JSON ----------
+/* ---------------- Import JSON ---------------- */
 function importData(file){
   const reader = new FileReader();
   reader.onload = ()=>{
     try{
       const obj = JSON.parse(String(reader.result));
-      // FIX: More lenient validation
-      if(!obj || typeof obj !== 'object') throw new Error("invalid");
-      
+      if(!obj?.routines || !obj?.logs) throw new Error("invalid");
+
+      // migrate days->sets
+      obj.routines.forEach(r=>{
+        if(Array.isArray(r.days) && !Array.isArray(r.sets)){
+          r.sets = r.days;
+          delete r.days;
+        }
+      });
+
       state = obj;
       if(!Array.isArray(state.routines) || state.routines.length===0) state.routines = seedData.routines;
       if(!Array.isArray(state.logs)) state.logs = [];
       if(!Array.isArray(state.sessions)) state.sessions = [];
+      if(!("lastCompleted" in state)) state.lastCompleted = null;
+
+      dedupeLogsKeepLatest();
       saveState();
 
+      // reset UI
       currentRoutineId = state.routines[0]?.id || "";
-      expandedDayId = null;
+      currentSetId = state.routines[0]?.sets?.[0]?.id || "";
       active.isRunning = false;
       stopTimer();
       if(els.activeWorkout) els.activeWorkout.hidden = true;
 
       renderRoutineSelect();
-      renderDayCards();
+      renderSetHomeUI();
       showHistoryList();
       renderHistory();
       renderStats();
       setStatus("Imported.");
-    }catch(err){
-      console.error('Import error:', err);
+    }catch{
       alert("Import failed. Please choose a valid backup JSON file.");
     }
   };
@@ -694,32 +888,7 @@ if(els.fileImport){
   });
 }
 
-// ---------- History (List + Detail drill-down) ----------
-function synthSessionsFromLogs(){
-  const map = new Map();
-  state.logs.forEach(l=>{
-    const k = `${l.date}||${l.routineId}||${l.dayId}`;
-    if(!map.has(k)){
-      map.set(k, {
-        id: uid("sess"),
-        date: l.date,
-        routineId: l.routineId,
-        dayId: l.dayId,
-        startedAt: l.createdAt || 0,
-        endedAt: l.createdAt || 0
-      });
-    }else{
-      const s = map.get(k);
-      s.startedAt = Math.min(s.startedAt, l.createdAt||s.startedAt);
-      s.endedAt = Math.max(s.endedAt, l.createdAt||s.endedAt);
-    }
-  });
-  return Array.from(map.values());
-}
-function getAllSessions(){
-  return (state.sessions && state.sessions.length) ? state.sessions.slice() : synthSessionsFromLogs();
-}
-
+/* ---------------- History ---------------- */
 function showHistoryList(){
   if(els.historyDetail) els.historyDetail.hidden = true;
   if(els.historyView) els.historyView.hidden = false;
@@ -736,14 +905,16 @@ function renderHistory(){
 
   const sessions = getAllSessions()
     .slice()
-    .sort((a,b)=> (b.startedAt||0)-(a.startedAt||0));
+    .sort((a,b)=> (b.endedAt||b.startedAt||0)-(a.endedAt||a.startedAt||0));
 
   sessions.forEach(s=>{
     const r = getRoutine(s.routineId);
-    const d = r?.days?.find(x=>x.id===s.dayId);
-    const sets = totalSetsForSession(s.date, s.routineId, s.dayId);
-    const vol = Math.round(totalVolumeForSession(s.date, s.routineId, s.dayId));
+    const setObj = r?.sets?.find(x=>x.id===s.setId);
+
+    const sets = totalSetsForSession(s.date, s.routineId, s.setId);
+    const vol = Math.round(totalVolumeForSession(s.date, s.routineId, s.setId));
     const dur = (s.endedAt && s.startedAt && s.endedAt>s.startedAt) ? fmtTime(s.endedAt - s.startedAt) : "—";
+    const doneAt = s.endedAt ? niceDateTime(s.endedAt) : "Not finished";
 
     const card = document.createElement("div");
     card.className = "dayCard";
@@ -751,20 +922,17 @@ function renderHistory(){
 
     const title = document.createElement("div");
     title.className = "dayTitle";
-    // FIX: Better date parsing to avoid timezone issues
-    const dateParts = s.date.split('-');
-    const dateObj = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
-    title.textContent = dateObj.toDateString();
+    title.textContent = new Date(s.date + "T00:00:00").toDateString();
 
     const main = document.createElement("div");
     main.className = "recentMain";
     main.style.marginTop = "8px";
     main.style.color = "rgba(16,185,129,.95)";
-    main.textContent = d?.name || "Workout";
+    main.textContent = `${r?.name || "Routine"} • ${setObj?.name || "Set"}`;
 
     const sub = document.createElement("div");
     sub.className = "recentSub";
-    sub.textContent = `⏱ ${dur} • 🏋️ ${sets} sets • 📦 ${vol} kg`;
+    sub.textContent = `⏱ ${dur} • 🏋️ ${sets} sets • 📦 ${vol} kg • ✅ ${doneAt}`;
 
     card.appendChild(title);
     card.appendChild(main);
@@ -788,25 +956,22 @@ function renderHistory(){
 
 function renderHistoryDetail(s){
   const r = getRoutine(s.routineId);
-  const d = r?.days?.find(x=>x.id===s.dayId);
-  const dayName = d?.name || "Workout";
-  // FIX: Better date parsing
-  const dateParts = s.date.split('-');
-  const dateObj = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
-  const dateNice = dateObj.toDateString();
+  const setObj = r?.sets?.find(x=>x.id===s.setId);
 
-  const sets = totalSetsForSession(s.date, s.routineId, s.dayId);
-  const vol = Math.round(totalVolumeForSession(s.date, s.routineId, s.dayId));
+  const dateNice = new Date(s.date + "T00:00:00").toDateString();
+
+  const sets = totalSetsForSession(s.date, s.routineId, s.setId);
+  const vol = Math.round(totalVolumeForSession(s.date, s.routineId, s.setId));
   const dur = (s.endedAt && s.startedAt && s.endedAt>s.startedAt) ? fmtTime(s.endedAt - s.startedAt) : "—";
 
   if(els.historyDetailTitle) els.historyDetailTitle.textContent = dateNice;
   if(els.historyDetailSub) els.historyDetailSub.textContent = r?.name || "Program";
-  if(els.historyDetailDayName) els.historyDetailDayName.textContent = dayName;
+  if(els.historyDetailDayName) els.historyDetailDayName.textContent = setObj?.name || "Set";
   if(els.historyDetailSummary) els.historyDetailSummary.textContent = `⏱ ${dur} • 🏋️ ${sets} sets • 📦 ${vol} kg`;
 
   if(!els.historyDetailExercises) return;
 
-  const logs = logsForSession(s.date, s.routineId, s.dayId);
+  const logs = logsForSession(s.date, s.routineId, s.setId);
   const byExercise = new Map();
   logs.forEach(l=>{
     const arr = byExercise.get(l.exerciseId) || [];
@@ -826,7 +991,7 @@ function renderHistoryDetail(s){
   }
 
   exerciseIds.forEach(exId=>{
-    const exName = (d?.exercises || []).find(x=>x.id===exId)?.name || exId;
+    const exName = (setObj?.exercises || []).find(x=>x.id===exId)?.name || exId;
     const entries = byExercise.get(exId).slice().sort((a,b)=>(a.setNo||0)-(b.setNo||0));
 
     const card = document.createElement("div");
@@ -884,12 +1049,14 @@ function renderHistoryDetail(s){
 
       w.addEventListener("change", ()=>{
         l.weight = Math.max(0, safeNum(w.value));
+        l.createdAt = Date.now();
         saveState();
         renderHistoryDetail(s);
         setStatus("Saved.");
       });
       reps.addEventListener("change", ()=>{
         l.reps = Math.max(0, Math.floor(safeNum(reps.value)));
+        l.createdAt = Date.now();
         saveState();
         renderHistoryDetail(s);
         setStatus("Saved.");
@@ -914,12 +1081,12 @@ function renderHistoryDetail(s){
   });
 }
 
-// ---------- Stats ----------
+/* ---------------- Stats ---------------- */
 function renderStats(){
   if(!els.statWorkouts) return;
 
   const sessions = getAllSessions();
-  const totalWorkouts = sessions.length;
+  const totalWorkouts = sessions.filter(s=>s.endedAt && s.endedAt>0).length;
   const totalSets = state.logs.length;
   const totalVol = Math.round(state.logs.reduce((s,l)=> s + (Number(l.reps||0)*Number(l.weight||0)), 0));
 
@@ -938,7 +1105,11 @@ function renderStats(){
   if(!els.recentActivity) return;
   els.recentActivity.innerHTML = "";
 
-  const latest = sessions.slice().sort((a,b)=> (b.startedAt||0)-(a.startedAt||0)).slice(0,5);
+  const latest = sessions
+    .filter(s=>s.endedAt && s.endedAt>0)
+    .slice()
+    .sort((a,b)=> (b.endedAt||0)-(a.endedAt||0))
+    .slice(0,5);
 
   if(latest.length===0){
     const div = document.createElement("div");
@@ -950,15 +1121,15 @@ function renderStats(){
 
   latest.forEach(s=>{
     const r = getRoutine(s.routineId);
-    const d = r?.days?.find(x=>x.id===s.dayId);
-    const sets = totalSetsForSession(s.date, s.routineId, s.dayId);
+    const setObj = r?.sets?.find(x=>x.id===s.setId);
+    const sets = totalSetsForSession(s.date, s.routineId, s.setId);
 
     const item = document.createElement("div");
     item.className = "recentItem";
 
     const a = document.createElement("div");
     a.className = "recentMain";
-    a.textContent = d?.name || "Workout";
+    a.textContent = `${r?.name || "Routine"} • ${setObj?.name || "Set"}`;
 
     const b = document.createElement("div");
     b.className = "recentSub";
@@ -970,7 +1141,7 @@ function renderStats(){
   });
 }
 
-// ---------- Install prompt ----------
+/* ---------------- Install prompt ---------------- */
 let deferredPrompt=null;
 window.addEventListener("beforeinstallprompt",(e)=>{
   e.preventDefault();
@@ -987,22 +1158,21 @@ if(els.btnInstall){
   });
 }
 
-// ---------- Service worker register ----------
+/* ---------------- Service worker register ---------------- */
 if("serviceWorker" in navigator){
   window.addEventListener("load", async ()=>{
     try{
       await navigator.serviceWorker.register("./sw.js");
       setStatus("Offline ready.");
-    }catch(err){
-      console.error('Service worker registration failed:', err);
+    }catch{
       setStatus("Service worker failed.");
     }
   });
 }
 
-// ---------- init ----------
+/* ---------------- Init ---------------- */
 renderRoutineSelect();
-renderDayCards();
+renderSetHomeUI();
 showHistoryList();
 renderHistory();
 renderStats();
