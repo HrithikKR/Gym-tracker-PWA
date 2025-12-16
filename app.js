@@ -1,4 +1,3 @@
-
 const STORAGE_KEY = "gymtracker:v1";
 
 const seedData = {
@@ -86,9 +85,11 @@ const seedData = {
 // ---------- helpers ----------
 function nowISODate(){
   const d = new Date();
-  const off = d.getTimezoneOffset();
-  const local = new Date(d.getTime() - off * 60 * 1000);
-  return local.toISOString().slice(0,10);
+  // FIX: Correct timezone offset calculation
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 function uid(prefix="id"){ return prefix+"_"+Math.random().toString(16).slice(2)+"_"+Date.now().toString(16); }
 function safeNum(v){ const n = Number(v); return Number.isFinite(n) ? n : 0; }
@@ -180,7 +181,7 @@ els.tabs.forEach(btn=>{
     const t = btn.dataset.tab;
 
     Object.values(els.panels).forEach(p=>p?.classList.remove("active"));
-    els.panels[t]?.classList.add("active");
+    if(els.panels[t]) els.panels[t].classList.add("active");
 
     if(t==="history"){ showHistoryList(); renderHistory(); }
     if(t==="stats") renderStats();
@@ -189,7 +190,7 @@ els.tabs.forEach(btn=>{
 
 // ---------- Data helpers ----------
 function getRoutine(rid){ return state.routines.find(r=>r.id===rid); }
-function getDay(r, did){ return r.days.find(d=>d.id===did); }
+function getDay(r, did){ return r?.days?.find(d=>d.id===did); }
 
 function logsFor(date, routineId, dayId, exerciseId){
   return state.logs
@@ -223,7 +224,9 @@ function startTimer(){
   if(!els.timerCard || !els.timerValue) return;
   els.timerCard.hidden = false;
   if(timerTick) clearInterval(timerTick);
-  timerTick = setInterval(()=>{ els.timerValue.textContent = fmtTime(Date.now() - active.startedAt); }, 250);
+  timerTick = setInterval(()=>{ 
+    if(els.timerValue) els.timerValue.textContent = fmtTime(Date.now() - active.startedAt); 
+  }, 250);
 }
 function stopTimer(){
   if(timerTick) clearInterval(timerTick);
@@ -655,7 +658,9 @@ function importData(file){
   reader.onload = ()=>{
     try{
       const obj = JSON.parse(String(reader.result));
-      if(!obj?.routines || !obj?.logs) throw new Error("invalid");
+      // FIX: More lenient validation
+      if(!obj || typeof obj !== 'object') throw new Error("invalid");
+      
       state = obj;
       if(!Array.isArray(state.routines) || state.routines.length===0) state.routines = seedData.routines;
       if(!Array.isArray(state.logs)) state.logs = [];
@@ -674,7 +679,8 @@ function importData(file){
       renderHistory();
       renderStats();
       setStatus("Imported.");
-    }catch{
+    }catch(err){
+      console.error('Import error:', err);
       alert("Import failed. Please choose a valid backup JSON file.");
     }
   };
@@ -745,7 +751,10 @@ function renderHistory(){
 
     const title = document.createElement("div");
     title.className = "dayTitle";
-    title.textContent = new Date(s.date + "T00:00:00").toDateString();
+    // FIX: Better date parsing to avoid timezone issues
+    const dateParts = s.date.split('-');
+    const dateObj = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
+    title.textContent = dateObj.toDateString();
 
     const main = document.createElement("div");
     main.className = "recentMain";
@@ -781,7 +790,10 @@ function renderHistoryDetail(s){
   const r = getRoutine(s.routineId);
   const d = r?.days?.find(x=>x.id===s.dayId);
   const dayName = d?.name || "Workout";
-  const dateNice = new Date(s.date + "T00:00:00").toDateString();
+  // FIX: Better date parsing
+  const dateParts = s.date.split('-');
+  const dateObj = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
+  const dateNice = dateObj.toDateString();
 
   const sets = totalSetsForSession(s.date, s.routineId, s.dayId);
   const vol = Math.round(totalVolumeForSession(s.date, s.routineId, s.dayId));
@@ -981,7 +993,8 @@ if("serviceWorker" in navigator){
     try{
       await navigator.serviceWorker.register("./sw.js");
       setStatus("Offline ready.");
-    }catch{
+    }catch(err){
+      console.error('Service worker registration failed:', err);
       setStatus("Service worker failed.");
     }
   });
