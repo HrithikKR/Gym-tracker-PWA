@@ -1,5 +1,5 @@
 // FIX: Increment cache version when you want to force updates
-const CACHE_NAME = "wtp-cache-v7";
+const CACHE_NAME = "wtp-cache-v9";
 const ASSETS = [
   "./",
   "./index.html",
