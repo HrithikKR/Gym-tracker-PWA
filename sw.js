@@ -1,4 +1,5 @@
-const CACHE_NAME = "wtp-cache-v6"; // change version to force refresh
+// FIX: Increment cache version when you want to force updates
+const CACHE_NAME = "wtp-cache-v7";
 const ASSETS = [
   "./",
   "./index.html",
@@ -43,7 +44,31 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // For assets, cache-first
+  // FIX: Network-first for app.js and styles.css to ensure updates are received
+  const url = new URL(req.url);
+  const isAppAsset = url.pathname.endsWith('/app.js') || 
+                     url.pathname.endsWith('/styles.css') ||
+                     url.pathname === '/app.js' || 
+                     url.pathname === '/styles.css';
+  
+  if (isAppAsset) {
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
+      try {
+        // Try network first
+        const fresh = await fetch(req);
+        cache.put(req, fresh.clone());
+        return fresh;
+      } catch {
+        // Fall back to cache if offline
+        const cached = await cache.match(req);
+        return cached || Response.error();
+      }
+    })());
+    return;
+  }
+
+  // For other assets (icon, manifest), cache-first is fine
   event.respondWith((async () => {
     const cache = await caches.open(CACHE_NAME);
     const cached = await cache.match(req);
