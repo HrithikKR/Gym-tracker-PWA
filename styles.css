@@ -185,7 +185,8 @@ select, input, button{ font: inherit; }
 }
 
 /* ---- Inputs ---- */
-.select,.input{
+/* FIX: Separated input and select styling to prevent appearance issues */
+.input, .select{
   width:100%;
   padding:12px 12px;
   border-radius: 14px;
@@ -197,21 +198,19 @@ select, input, button{ font: inherit; }
 
 .input::placeholder{ color: rgba(154,164,178,.7); }
 
-/* IMPORTANT:
-   On Android, appearance:none can break <select>.
-   Keep it ONLY for .input, and allow select default behavior. */
+/* FIX: Only apply appearance:none to .input, NOT to select */
 .input{
   appearance: none;
   -webkit-appearance: none;
 }
 
-/* Let select behave like a real dropdown */
+/* FIX: Let select behave normally - remove appearance override */
 .select{
-  appearance: auto;
-  -webkit-appearance: menulist;
+  /* Using default browser appearance for proper dropdown behavior */
+  cursor: pointer;
 }
 
-/* Make date picker not white on some Android builds */
+/* Make date picker work properly in dark mode on all platforms */
 input[type="date"].input{
   color-scheme: dark;
 }
